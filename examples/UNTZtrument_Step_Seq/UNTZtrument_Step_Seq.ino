@@ -28,6 +28,8 @@
 // still have trouble with notes all off when switch layers and grid sets
 // need to check if long notes still work when changing button grid marks or layer and other switches
 // need a scale with just the mt32 drumkit notes
+// volumes left are right controll (fade)
+// flash notes on other layers as they are played so we can see where the notes are being played on other layers
 
 #include <Wire.h>
 #include <Adafruit_Trellis.h>
@@ -85,7 +87,7 @@ boolean       force_first_note = false;
 
 uint8_t       grid[GRID_WIDTH][LAYERS][GRID_SETS];    // Sequencer state
 uint8_t       channels[LAYERS] = {          // todo maybe make const?
-  2, 2, 3, 4, 5, 6, 7, 10};
+  2, 3, 4, 5, 6, 7, 8, 10};
 uint8_t       grid_width[GRID_SETS];  // todo we have max 16 so we have 4 bits extra here
 //boolean long_notes[LAYERS] = {
 //  1, 1, 1, 1, 1, 1, 1, 0}; // todo may store bit in note offset
@@ -279,11 +281,13 @@ void line_horz(uint8_t y, boolean setit)
 #define PLAYING_ERASE_SCALE_2           17
 #define PLAYING_ERASE_C_1               18 
 #define PLAYING_ERASE_C_2               19
+#define PLAYING_ERASE_MEASURE_1         20 
+#define PLAYING_ERASE_MEASURE_2         21
 
-// defaul;t sequencer state is playing
+// default sequencer state is playing
 uint8_t mode = PLAYING;
 
-// button states
+// button states, with last val for debounce 
 uint8_t sensor0Val = HIGH;
 uint8_t lastSensor0Val = HIGH;
 uint8_t sensor1Val = HIGH;
@@ -326,6 +330,8 @@ void loop()
           case PLAYING_ERASE_SCALE_2:
           case PLAYING_ERASE_C_1:
           case PLAYING_ERASE_C_2:
+          case PLAYING_ERASE_MEASURE_1:
+          case PLAYING_ERASE_MEASURE_2:
             // fall through
           case PLAYING:
             {
@@ -450,7 +456,6 @@ void loop()
               eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
               eDisplayOffset.setValue(0);              // *4's for encoder detents
 
-
               // Turn on col for a beat to indicate selection
               line_vert(visible_grid_set, true);
               refresh = true;
@@ -506,7 +511,7 @@ void loop()
               line_horz(temp / 8, false);
 
               temp = x+y*8;
-             if (temp > MAX_SCALES)
+              if (temp > MAX_SCALES)
               {
                 temp = MAX_SCALES - 1;  
               }
@@ -585,8 +590,18 @@ void loop()
     // redraw all columns
     for(uint8_t column_index=0; column_index < BUTTON_GRID_WIDTH; column_index++) 
     {
-      line_vert(column_index, false);
+      if (((temp + column_index) % 4) == 0) //todo hard coded 4 beats a measure for indicator, need to make configured by grid width setting
+      {
+       line_vert(column_index, true);
+        //todo need to adjust encoder value back a notch when at limit so that we can detect when it moves further at the end of travel by looking at the undivided by 4 value
+      }
+      else
+      {
+       line_vert(column_index, false);
+      }
     }
+    
+    mode = PLAYING_ERASE_MEASURE_1;
     refresh      = true;
   }
 
@@ -608,7 +623,7 @@ void loop()
       }
     }
 
-    // Advance column counter, wrap around and switch grid sets
+    // Advance column counter, wrap around and switch grid sets if needed
     if(++col >= grid_width[playing_grid_set]) 
     {
       col = 0;
@@ -708,7 +723,10 @@ void loop()
 
   case PLAYING_ERASE_C_1:
     mode =  PLAYING_ERASE_C_2;
-    // drop through
+    break;
+    
+  case PLAYING_ERASE_MEASURE_1:
+    mode =  PLAYING_ERASE_MEASURE_2;
     break;
 
   case PLAYING_ERASE_WIDTH_1:
@@ -783,14 +801,25 @@ void loop()
       break;
     }
 
-case PLAYING_ERASE_C_2:
-{
-     for(uint8_t row_index=0; row_index < grid_width[visible_grid_set]; row_index++) 
+  case PLAYING_ERASE_C_2:
     {
-         line_horz(row_index, false);
-      }
-     break;  
-}
+         for(uint8_t row_index=0; row_index < grid_width[visible_grid_set]; row_index++) 
+        {
+             line_horz(row_index, false);
+          }
+      mode =  PLAYING;
+         break;  
+    }
+
+  case PLAYING_ERASE_MEASURE_2:
+    {
+         for(uint8_t column_index=0; column_index < GRID_WIDTH; column_index++) 
+        {
+             line_vert(column_index, false);
+          }
+      mode =  PLAYING;
+         break;  
+    }
 
   default:
     break;
@@ -835,7 +864,6 @@ case PLAYING_ERASE_C_2:
     }
   }
   lastSensor0Val =sensor0Val;
-
 
   // grid width select
   sensor13Val = digitalRead(BUTTON_WIDTH);
