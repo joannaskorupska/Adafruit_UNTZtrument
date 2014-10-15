@@ -30,8 +30,12 @@
 // need a scale with just the mt32 drumkit notes
 // volumes left are right controll (fade)
 // flash notes on other layers as they are played so we can see where the notes are being played on other layers
+// add load/save state by midi note export and recording on an external device
+// need to switch to new instrument on grid switch
+// maybe hide play bar when scrolling to avoid confusion
 
 #include <Wire.h>
+#include <EEPROM.h>
 #include <Adafruit_Trellis.h>
 #include <Adafruit_UNTZtrument.h>
 
@@ -85,26 +89,34 @@ boolean       force_first_note = false;
 #define GRID_WIDTH     16
 #define GRID_SETS      8
 
-uint8_t       grid[GRID_WIDTH][LAYERS][GRID_SETS];    // Sequencer state
-uint8_t       channels[LAYERS] = {          // todo maybe make const?
-  2, 3, 4, 5, 6, 7, 8, 10};
-uint8_t       grid_width[GRID_SETS];  // todo we have max 16 so we have 4 bits extra here
-//boolean long_notes[LAYERS] = {
-//  1, 1, 1, 1, 1, 1, 1, 0}; // todo may store bit in note offset
-uint8_t       noteOffset[LAYERS][GRID_SETS];
-uint8_t       volume[LAYERS];
-uint8_t       current_program_change[LAYERS][GRID_SETS];
-uint8_t       scale_notes[LAYERS][GRID_SETS];
+uint8_t       grid[GRID_WIDTH][LAYERS][GRID_SETS]; // bitfield
+
+uint8_t       channels[LAYERS][GRID_SETS];  // 1 to 127, 1 bit free
+boolean       long_notes[LAYERS][GRID_SETS] = {
+  1, 1, 1, 1, 1, 1, 1, 0}; // 0 to 1, 7 bits free
+uint8_t       noteOffset[LAYERS][GRID_SETS]; // 0 to (MAX_MIDI_NOTES-BUTTON_GRID_WIDTH), 2 bits free
+uint8_t       volume[LAYERS][GRID_SETS]; // 0 to 127, 1 bit free
+uint8_t       instrument[LAYERS][GRID_SETS]; // 1 to 127, 1 bit free
+uint8_t       scale_notes[LAYERS][GRID_SETS]; // 0 to (MAX_SCALES-1), 4 bits free
+// total of 16 bits not used, 128 bytes packed
+
+uint8_t       grid_width[GRID_SETS];  // 0 to (GRID_WIDTH-1) 4 bits free
+uint8_t       tempo[GRID_SETS]; // todo hook this up to bpm
+// total of 384 + 1024 + 16
+// todo need to get this under 1K to be able ot store everything in EEPROM
 
 //uint8_t max_grid_width_table[14] = {
 //  8, 9, 10, 12, 14, 15, 16, 20, 21, 24, 25, 27, 28, 30}; // mutiples of 2, 3, 4, 5, 6, 7 that are equal to or more than 8
 
 #define MIDI_MIDDLE_C 60
+// todo make this 64 so I can use all the buttons on the performance layer (maybe 56 so that we have 8 buttons to switch grid sets on and have an even 7 buttons across for scales)
 #define MAX_MIDI_NOTES 54
 
 #define MAX_SCALES 12
 
 // these are stored in program memory so they do not take up ram and can be stored unpacked for quick easy access
+// todo add many more scales, since we have pleanty of program space
+// add MT32 drum channel scale with only active notes, default to last layer which defaults to channel 10
 static const uint8_t PROGMEM
 scales[MAX_SCALES][MAX_MIDI_NOTES] = {
   {
@@ -185,6 +197,45 @@ scales[MAX_SCALES][MAX_MIDI_NOTES] = {
  }
  */
 
+void saveToEEPROM(int eepromAddress, uint8_t * source, int length)
+{
+  for (int index = 0; index < length; index++)
+  {
+    EEPROM.write(eepromAddress + index, source[index]);  
+  }
+ }
+ 
+void loadFromEEPROM(int eepromAddress, uint8_t * source, int length)
+{
+  for (int index = 0; index < length; index++)
+  {
+    source[index] = EEPROM.read(eepromAddress + index);  
+  }
+ }
+
+//todo add checksums to when things change we reset them
+void save(void)
+{
+  int address = 0;
+  saveToEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
+//  address += sizeof(grid);
+//  saveToEEPROM(address, (uint8_t *)&grid_width[0], sizeof(grid_width));
+//  address += sizeof(grid_width);
+//  saveToEEPROM(address, (uint8_t *)&noteOffset[0], sizeof(noteOffset));
+//  address += sizeof(noteOffset);
+}
+
+void load(void)
+{
+  int address = 0;
+  loadFromEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
+//  address += sizeof(grid);
+//  loadFromEEPROM(address, (uint8_t *)&grid_width[0], sizeof(grid_width));
+//  address += sizeof(grid_width);
+//  loadFromEEPROM(address, (uint8_t *)&noteOffset[0], sizeof(noteOffset));
+//  address += sizeof(noteOffset);
+}
+
 void setup() 
 {
   pinMode(BUTTON_WIDTH, INPUT_PULLUP); 
@@ -211,9 +262,17 @@ void setup()
   memset(grid, 0, sizeof(grid)); // no notes set yet, all grid sets and layers
   memset(noteOffset, 23, sizeof(noteOffset)); // current center of note scale for each layer and grid set
   memset(volume, 64, sizeof(volume)); // 1/2 range current midi volume for each layer
-  memset(current_program_change, 0, sizeof(current_program_change)); // current midi instrument for each layer
+  memset(instrument, 0, sizeof(instrument)); // current midi instrument for each layer
   memset(grid_width, 16, sizeof(grid_width)); // default all grids to 16 beats wide
-  memset(scale_notes, 0, sizeof(scale_notes)); // default all grids to 16 beats wide
+  memset(scale_notes, 0, sizeof(scale_notes)); // default all grids to major scale
+  memset(channels, 2, sizeof(channels)); // default all channels to 2
+  
+  for (uint8_t index = 0; index < GRID_SETS; index++) // default all the last layers to channel 10 for mt32 drum channel
+  {
+    channels[LAYERS-1][index] = 10;
+  }
+  
+//  load();
 
   eScaleOffset.setBounds(0, 44 * 4 + 3); // Set note offset limits
   eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
@@ -222,8 +281,7 @@ void setup()
   eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
   eDisplayOffset.setValue(0);              // *4's for encoder detents
   eVolume.setBounds(0, 127 * 4 + 3); // Set volume limits
-  eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
-
+  eVolume.setValue(volume[layer][visible_grid_set] * 4);              // *4's for encoder detents
 }
 
 // Turn on (or off) one column of the display
@@ -283,6 +341,9 @@ void line_horz(uint8_t y, boolean setit)
 #define PLAYING_ERASE_C_2               19
 #define PLAYING_ERASE_MEASURE_1         20 
 #define PLAYING_ERASE_MEASURE_2         21
+#define WAIT_FOR_CHANNEL                22
+#define PLAYING_ERASE_CHANNEL_1         23
+#define PLAYING_ERASE_CHANNEL_2         24
 
 // default sequencer state is playing
 uint8_t mode = PLAYING;
@@ -320,6 +381,8 @@ void loop()
           {
           case PLAYING_ERASE_PROGRAM_CHANGE_1:
           case PLAYING_ERASE_PROGRAM_CHANGE_2:
+          case PLAYING_ERASE_CHANNEL_1:
+          case PLAYING_ERASE_CHANNEL_2:
           case PLAYING_ERASE_LAYER_1:
           case PLAYING_ERASE_LAYER_2:
           case PLAYING_ERASE_GRID_1:
@@ -345,8 +408,8 @@ void loop()
                 //todo this wont work for other grid set is still playing
                 if (visible_grid_set == playing_grid_set)
                 {
-                  uint8_t temp = channels[layer];
-                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][y + noteOffset[layer][playing_grid_set]] ) , 127, temp);
+                  uint8_t temp2 = channels[layer][playing_grid_set];
+                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][y + noteOffset[layer][playing_grid_set]] ) , 127, temp2);
                 }
               }
               else // Turn on
@@ -360,7 +423,7 @@ void loop()
 
           case WAIT_FOR_PROGRAM_CHANGE:
             {
-              uint8_t temp = current_program_change[layer][visible_grid_set];
+              uint8_t temp = instrument[layer][visible_grid_set];
 
               if (temp >= 64)
               {
@@ -372,9 +435,9 @@ void loop()
               line_horz(temp / 8, false);
 
               temp = x+y*8;
-              current_program_change[layer][visible_grid_set] = temp;
+              instrument[layer][visible_grid_set] = temp;
 
-              usbMIDI.sendProgramChange(temp, channels[layer]);
+              usbMIDI.sendProgramChange(temp, channels[layer][playing_grid_set]);
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -388,7 +451,7 @@ void loop()
 
           case WAIT_FOR_PROGRAM_CHANGE_2:
             {
-              uint8_t temp = current_program_change[layer][visible_grid_set];
+              uint8_t temp = instrument[layer][visible_grid_set];
               if (temp >= 64)
               {
                 temp = temp - 64;  
@@ -399,9 +462,9 @@ void loop()
               line_horz(temp / 8, false);
 
               temp = x + y*8 + 64;
-              current_program_change[layer][visible_grid_set] = temp;
+              instrument[layer][visible_grid_set] = temp;
 
-              usbMIDI.sendProgramChange(temp, channels[layer]);
+              usbMIDI.sendProgramChange(temp, channels[layer][playing_grid_set]);
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -432,7 +495,10 @@ void loop()
 
               // adjust encoder ranges to match current layer
               eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
-              eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
+              eVolume.setValue(volume[layer][visible_grid_set] * 4);              // *4's for encoder detents
+              
+              //save(); // save on layer change
+              
               refresh = true;
               break;
             }
@@ -528,6 +594,28 @@ void loop()
               break;
             }
 
+          case WAIT_FOR_CHANNEL:
+            {
+              uint8_t temp = channels[layer][visible_grid_set];
+
+              // Turn off column and row
+              line_vert(temp % 8, false);
+              line_horz(temp / 8, false);
+
+              temp = x+y*8;
+              channels[layer][visible_grid_set] = temp;
+
+              force_first_note = true;
+
+              // Turn on column and row for a beat to indicate selection
+              line_vert(x, true);
+              line_horz(y, true);
+
+              mode = PLAYING_ERASE_CHANNEL_1;
+              refresh = true;
+              break;
+            }
+
           default:
             {
               break;
@@ -565,7 +653,7 @@ void loop()
     // shift all notes and redraw columns
     for(uint8_t row_index=0; row_index < grid_width[visible_grid_set]; row_index++) 
     {
-      if (((temp + row_index) % 7) == 0)
+      if (((temp + row_index) % 7) == 0) //todo this needs to actually point to the C's in a scale (%7 for the moment), scales can have different sizes but Middle C is always placed in the center of the note scale. 
       {
         line_horz(row_index, true);
         //todo need to adjust encoder value back a notch when at limit so that we can detect when it moves further at the end of travel by looking at the undivided by 4 value
@@ -617,7 +705,7 @@ void loop()
       {
         if((grid[col][layer_index][playing_grid_set] & mask) && (!(grid[(col + 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask) || ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set))))
         {
-          uint8_t temp = channels[layer_index];
+          uint8_t temp = channels[layer_index][playing_grid_set];
           usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index][playing_grid_set]][row + noteOffset[layer_index][playing_grid_set]] ) , 127, temp);
         }
       }
@@ -635,13 +723,14 @@ void loop()
     }
 
     // adjust the volume here so all notes are off when we make the change
+    // todo add display of currnet volume level with a vertical bar, possibley show other layer volumes
     temp = eVolume.getValue() / 4;
-    diff = volume[layer] - temp;
+    diff = volume[layer][visible_grid_set] - temp;
     if (diff != 0)
     {
-      volume[layer] = temp;
+      volume[layer][visible_grid_set] = temp;
       // send change volume on channels
-      usbMIDI.sendControlChange(7, temp, channels[layer]);
+      usbMIDI.sendControlChange(7, temp, channels[layer][playing_grid_set]);
     }
 
     // Turn on new column
@@ -654,7 +743,7 @@ void loop()
       {
         if((grid[col][layer_index][playing_grid_set] & mask) && ((!(grid[(col + grid_width[playing_grid_set] - 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask)) || (force_first_note == true)))
         {
-          uint8_t temp = channels[layer_index];
+          uint8_t temp = channels[layer_index][playing_grid_set];
           usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer_index][playing_grid_set]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
           force_first_note = false; // clear trigger if it was set
         }
@@ -664,6 +753,7 @@ void loop()
     prevBeatTime = t;
     refresh      = true;
 
+  // todo add display of currnet tempo with a horizontal bar, possibley show other layer tempos
     bpm          = eTempo.getValue() /4 ; // Div for encoder detents
     beatInterval = 60000L / bpm;
 
@@ -679,7 +769,7 @@ void loop()
   case WAIT_FOR_PROGRAM_CHANGE_2:
     {
       // Turn on column and row for a beat to indicate current selection
-      uint8_t temp = current_program_change[layer][visible_grid_set];
+      uint8_t temp = instrument[layer][visible_grid_set];
 
       if (temp >= 64)
       {
@@ -705,6 +795,19 @@ void loop()
       line_horz(temp / 8, true);
       break;
     }
+    
+  case PLAYING_ERASE_CHANNEL_1:
+    mode =  PLAYING_ERASE_CHANNEL_2;
+    // drop thru
+  case WAIT_FOR_CHANNEL:
+    {
+      // Turn on column and row for a beat to indicate current selection
+      uint8_t temp = channels[layer][visible_grid_set];
+      line_vert(temp % 8, true);
+      line_horz(temp / 8, true);
+      break;
+    }
+    
   case PLAYING_ERASE_LAYER_1:
     mode =  PLAYING_ERASE_LAYER_2;
     // drop through
@@ -747,7 +850,7 @@ void loop()
 
   case PLAYING_ERASE_PROGRAM_CHANGE_2:
     {
-      uint8_t temp = current_program_change[layer][visible_grid_set];
+      uint8_t temp = instrument[layer][visible_grid_set];
 
       if (temp >= 64)
       {
@@ -768,6 +871,17 @@ void loop()
       {
         temp = MAX_SCALES - 1;
       }
+      // Turn off column and row after selection
+      line_vert(temp % 8, false);
+      line_horz(temp / 8, false);
+      mode =  PLAYING;
+      break;
+    }
+
+  case PLAYING_ERASE_CHANNEL_2:
+    {
+      uint8_t temp = channels[layer][visible_grid_set];
+
       // Turn off column and row after selection
       line_vert(temp % 8, false);
       line_horz(temp / 8, false);
@@ -828,6 +942,7 @@ void loop()
   enc::poll(); // Read encoder(s)
 
   // todo temp disable until we have a button to hook it to
+  // todo make first button clear current layer, second clear current grid, third clear everything
 #if 0
   // clear all layers
   sensorVal = digitalRead(???);
@@ -862,6 +977,39 @@ void loop()
       line_horz(temp / 8, true);
       refresh = true;
     }
+    else if ((sensor0Val == LOW) && (mode == WAIT_FOR_SCALE)) // pressed the button twice
+    {
+     // Turn off column and row for a beat to indicate current selection
+      uint8_t temp = scale_notes[layer][visible_grid_set];
+
+      if (temp > MAX_SCALES)
+      {
+        temp = MAX_SCALES - 1;    
+      }
+
+      line_vert(temp % 8, false);
+      line_horz(temp / 8, false);
+      
+     // Turn off column and row for a beat to indicate current selection
+      temp = channels[layer][visible_grid_set];
+
+      line_vert(temp % 8, true);
+      line_horz(temp / 8, true);
+      refresh = true;
+
+      mode = WAIT_FOR_CHANNEL;
+    }
+    else if ((sensor0Val == LOW) && (mode == WAIT_FOR_CHANNEL)) // pressed the button twice
+    {
+      // Turn off column and row for a beat to indicate current selection
+      uint8_t temp = channels[layer][visible_grid_set];
+
+      line_vert(temp % 8, false);
+      line_horz(temp / 8, false);
+      refresh = true;
+
+      mode = PLAYING;
+    }  
   }
   lastSensor0Val =sensor0Val;
 
@@ -880,6 +1028,17 @@ void loop()
       line_horz(temp / 8, true);
       refresh = true;
     }
+    else if ((sensor13Val == LOW) && (mode == WAIT_FOR_WIDTH)) // pressed the button twice
+    {
+      // Turn off column and row for a beat to indicate current selection
+      uint8_t temp = grid_width[visible_grid_set] - 1;
+
+      line_vert(temp % 8, false);
+      line_horz(temp / 8, false);
+      refresh = true;
+
+      mode = PLAYING;
+    }  
   }
   lastSensor13Val = sensor13Val;
 
@@ -893,7 +1052,7 @@ void loop()
       mode = WAIT_FOR_PROGRAM_CHANGE;
 
       // Turn on column and row for a beat to indicate current selection
-      uint8_t temp = current_program_change[layer][visible_grid_set];
+      uint8_t temp = instrument[layer][visible_grid_set];
 
       if (temp >= 64)
       {
@@ -910,7 +1069,19 @@ void loop()
     }
     else if ((sensor1Val == LOW) && (mode == WAIT_FOR_PROGRAM_CHANGE_2)) // pressed the button twice
     {
-      mode = WAIT_FOR_PROGRAM_CHANGE;
+      // Turn off column and row for a beat to indicate current selection
+      uint8_t temp = instrument[layer][visible_grid_set];
+
+      if (temp >= 64)
+      {
+        temp = temp - 64;
+      }
+
+      line_vert(temp % 8, false);
+      line_horz(temp / 8, false);
+      refresh = true;
+
+      mode = PLAYING;
     }
   }
   lastSensor1Val = sensor1Val;
@@ -943,11 +1114,7 @@ void loop()
       // Turn off row to indicate current selection
       line_vert(visible_grid_set, false);
 
-      // Turn on row to indicate current selection
-      line_horz(layer, true);
-      refresh = true;
-
-      mode = WAIT_FOR_LAYER;
+      mode = PLAYING;
     }
   }
   lastSensor12Val = sensor12Val;
@@ -966,12 +1133,68 @@ void loop()
 
 
 
+// todo stuff for performance layer
+/*
+void OnNoteOn(byte channel, byte note, byte velocity)
+{
+  note = note - LOWNOTE;
+  untztrument.setLED(untztrument.xy2i(note % WIDTH, note / WIDTH));
+}
 
+void OnNoteOff(byte channel, byte note, byte velocity)
+{
+  note = note - LOWNOTE;
+  untztrument.clrLED(untztrument.xy2i(note % WIDTH, note / WIDTH));
+}
 
+void setup() {
+  pinMode(LED, OUTPUT);
+#ifndef HELLA
+  untztrument.begin(addr[0], addr[1], addr[2], addr[3]);
+#else
+  untztrument.begin(addr[0], addr[1], addr[2], addr[3],
+                    addr[4], addr[5], addr[6], addr[7]);
+#endif // HELLA
+#ifdef __AVR__
+  // Default Arduino I2C speed is 100 KHz, but the HT16K33 supports
+  // 400 KHz.  We can force this for faster read & refresh, but may
+  // break compatibility with other I2C devices...so be prepared to
+  // comment this out, or save & restore value as needed.
+  TWBR = 12;
+#endif
+  untztrument.clear();
+  untztrument.writeDisplay();
+  usbMIDI.setHandleNoteOff(OnNoteOff);
+  usbMIDI.setHandleNoteOn(OnNoteOn);
+}
 
-
-
-
-
+void loop() {
+  unsigned long t = millis();
+  if((t - prevReadTime) >= 20L) { // 20ms = min Trellis poll time
+    if(untztrument.readSwitches()) { // Button state change?
+      for(uint8_t i=0; i<N_BUTTONS; i++) { // For each button...
+        // Get column/row for button, convert to MIDI note number
+        uint8_t x, y, note;
+        untztrument.i2xy(i, &x, &y);
+        note = LOWNOTE + y * WIDTH + x;
+        if(untztrument.justPressed(i)) {
+          usbMIDI.sendNoteOn(note, 127, CHANNEL);
+          //untztrument.setLED(i);
+        } else if(untztrument.justReleased(i)) {
+          usbMIDI.sendNoteOff(note, 0, CHANNEL);
+          //untztrument.clrLED(i);
+        }
+      }
+      
+    }
+    prevReadTime = t;
+    digitalWrite(LED, ++heart & 32); // Blink = alive
+    
+    usbMIDI.read(2);
+    untztrument.writeDisplay();
+  }
+  while(); // Discard incoming MIDI messages
+}
+*/
 
 
