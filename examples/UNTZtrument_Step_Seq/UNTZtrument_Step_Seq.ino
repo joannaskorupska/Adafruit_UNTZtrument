@@ -77,6 +77,8 @@ unsigned int  bpm          = 240;          // Tempo
 unsigned long beatInterval = 60000L / bpm; // ms/beat
 unsigned long prevBeatTime = 0L;           // Column step timer
 unsigned long prevReadTime = 0L;           // Keypad polling timer
+long longButtonPressTime = -1;
+
 uint8_t       playing_grid_set = 0;
 uint8_t       visible_grid_set = 0;
 uint8_t       layer = 0;                   // current layer
@@ -89,21 +91,19 @@ boolean       force_first_note = false;
 #define GRID_WIDTH     16
 #define GRID_SETS      8
 
-uint8_t       grid[GRID_WIDTH][LAYERS][GRID_SETS]; // bitfield
+uint8_t       grid[GRID_WIDTH][LAYERS - 1][GRID_SETS]; // bitfield
 
-uint8_t       channels[LAYERS][GRID_SETS];  // 1 to 127, 1 bit free
-boolean       long_notes[LAYERS][GRID_SETS] = {
+uint8_t       channels[LAYERS];  // 1 to 127, 1 bit free
+uint8_t       long_notes[LAYERS] = {
   1, 1, 1, 1, 1, 1, 1, 0}; // 0 to 1, 7 bits free
-uint8_t       noteOffset[LAYERS][GRID_SETS]; // 0 to (MAX_MIDI_NOTES-BUTTON_GRID_WIDTH), 2 bits free
-uint8_t       volume[LAYERS][GRID_SETS]; // 0 to 127, 1 bit free
-uint8_t       instrument[LAYERS][GRID_SETS]; // 1 to 127, 1 bit free
-uint8_t       scale_notes[LAYERS][GRID_SETS]; // 0 to (MAX_SCALES-1), 4 bits free
+uint8_t       noteOffset[LAYERS - 1][GRID_SETS]; // 0 to (MAX_MIDI_NOTES-BUTTON_GRID_WIDTH), 2 bits free
+uint8_t       volume[LAYERS]; // 0 to 127, 1 bit free
+uint8_t       instrument[LAYERS]; // 1 to 127, 1 bit free
+uint8_t       scale_notes[LAYERS]; // 0 to (MAX_SCALES-1), 4 bits free
 // total of 16 bits not used, 128 bytes packed
 
 uint8_t       grid_width[GRID_SETS];  // 0 to (GRID_WIDTH-1) 4 bits free
 uint8_t       tempo[GRID_SETS]; // todo hook this up to bpm
-// total of 384 + 1024 + 16
-// todo need to get this under 1K to be able ot store everything in EEPROM
 
 //uint8_t max_grid_width_table[14] = {
 //  8, 9, 10, 12, 14, 15, 16, 20, 21, 24, 25, 27, 28, 30}; // mutiples of 2, 3, 4, 5, 6, 7 that are equal to or more than 8
@@ -120,40 +120,40 @@ uint8_t       tempo[GRID_SETS]; // todo hook this up to bpm
 static const uint8_t PROGMEM
 scales[MAX_SCALES][MAX_MIDI_NOTES] = {
   {
-    105, 103, 101, 100, 98, 96, 95, 93, 91, 89, 88, 86, 84, 83, 81, 79, 77, 76, 74, 72, 71, 69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47, 45, 43, 41, 40, 38, 36, 35, 33, 31, 29, 28, 26, 24, 23, 21, 19, 17, 16, 14          }
+    105, 103, 101, 100, 98, 96, 95, 93, 91, 89, 88, 86, 84, 83, 81, 79, 77, 76, 74, 72, 71, 69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47, 45, 43, 41, 40, 38, 36, 35, 33, 31, 29, 28, 26, 24, 23, 21, 19, 17, 16, 14                  }
   ,
   {
-    104, 103, 101, 99, 98, 96, 94, 92, 91, 89, 87, 86, 84, 82, 80, 79, 77, 75, 74, 72, 70, 68, 67, 65, 63, 62, 60, 58, 56, 55, 53, 51, 50, 48, 46, 44, 43, 41, 39, 38, 36, 34, 32, 31, 29, 27, 26, 24, 22, 20, 19, 17, 15, 14          }
+    104, 103, 101, 99, 98, 96, 94, 92, 91, 89, 87, 86, 84, 82, 80, 79, 77, 75, 74, 72, 70, 68, 67, 65, 63, 62, 60, 58, 56, 55, 53, 51, 50, 48, 46, 44, 43, 41, 39, 38, 36, 34, 32, 31, 29, 27, 26, 24, 22, 20, 19, 17, 15, 14                  }
   ,
   {
-    86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33          }
+    86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33                  }
   ,
   {
-    113, 111, 108, 106, 103, 102, 101, 99, 96, 94, 91, 90, 89, 87, 84, 82, 79, 78, 77, 75, 72, 70, 67, 66, 65, 63, 60, 58, 55, 54, 53, 51, 48, 46, 43, 42, 41, 39, 36, 34, 31, 30, 29, 27, 24, 22, 19, 18, 17, 15, 12, 10, 7, 6          }
+    113, 111, 108, 106, 103, 102, 101, 99, 96, 94, 91, 90, 89, 87, 84, 82, 79, 78, 77, 75, 72, 70, 67, 66, 65, 63, 60, 58, 55, 54, 53, 51, 48, 46, 43, 42, 41, 39, 36, 34, 31, 30, 29, 27, 24, 22, 19, 18, 17, 15, 12, 10, 7, 6                  }
   ,
   {
-    99, 97, 96, 94, 93, 91, 90, 88, 87, 85, 84, 82, 81, 79, 78, 76, 75, 73, 72, 70, 69, 67, 66, 64, 63, 61, 60, 58, 57, 55, 54, 52, 51, 49, 48, 46, 45, 43, 42, 40, 39, 37, 36, 34, 33, 31, 30, 28, 27, 25, 24, 22, 21, 19          }
+    99, 97, 96, 94, 93, 91, 90, 88, 87, 85, 84, 82, 81, 79, 78, 76, 75, 73, 72, 70, 69, 67, 66, 64, 63, 61, 60, 58, 57, 55, 54, 52, 51, 49, 48, 46, 45, 43, 42, 40, 39, 37, 36, 34, 33, 31, 30, 28, 27, 25, 24, 22, 21, 19                  }
   ,
   {
-    95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24          }
+    95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24                  }
   ,
   {
-    104, 103, 101, 100, 98, 96, 95, 92, 91, 89, 88, 86, 84, 83, 80, 79, 77, 76, 74, 72, 71, 68, 67, 65, 64, 62, 60, 59, 56, 55, 53, 52, 50, 48, 47, 44, 43, 41, 40, 38, 36, 35, 32, 31, 29, 28, 26, 24, 23, 20, 19, 17, 16, 14          }
+    104, 103, 101, 100, 98, 96, 95, 92, 91, 89, 88, 86, 84, 83, 80, 79, 77, 76, 74, 72, 71, 68, 67, 65, 64, 62, 60, 59, 56, 55, 53, 52, 50, 48, 47, 44, 43, 41, 40, 38, 36, 35, 32, 31, 29, 28, 26, 24, 23, 20, 19, 17, 16, 14                  }
   ,
   {
-    104, 103, 101, 99, 98, 96, 95, 92, 91, 89, 87, 86, 84, 83, 80, 79, 77, 75, 74, 72, 71, 68, 67, 65, 63, 62, 60, 59, 56, 55, 53, 51, 50, 48, 47, 44, 43, 41, 39, 38, 36, 35, 32, 31, 29, 27, 26, 24, 23, 20, 19, 17, 15, 14          }
+    104, 103, 101, 99, 98, 96, 95, 92, 91, 89, 87, 86, 84, 83, 80, 79, 77, 75, 74, 72, 71, 68, 67, 65, 63, 62, 60, 59, 56, 55, 53, 51, 50, 48, 47, 44, 43, 41, 39, 38, 36, 35, 32, 31, 29, 27, 26, 24, 23, 20, 19, 17, 15, 14                  }
   ,
   {
-    105, 103, 101, 99, 98, 96, 95, 93, 91, 89, 87, 86, 84, 83, 81, 79, 77, 75, 74, 72, 71, 69, 67, 65, 63, 62, 60, 59, 57, 55, 53, 51, 50, 48, 47, 45, 43, 41, 39, 38, 36, 35, 33, 31, 29, 27, 26, 24, 23, 21, 19, 17, 15, 14          }
+    105, 103, 101, 99, 98, 96, 95, 93, 91, 89, 87, 86, 84, 83, 81, 79, 77, 75, 74, 72, 71, 69, 67, 65, 63, 62, 60, 59, 57, 55, 53, 51, 50, 48, 47, 45, 43, 41, 39, 38, 36, 35, 33, 31, 29, 27, 26, 24, 23, 21, 19, 17, 15, 14                  }
   ,
   {
-    111, 110, 108, 107, 105, 103, 99, 98, 96, 95, 93, 91, 87, 86, 84, 83, 81, 79, 75, 74, 72, 71, 69, 67, 63, 62, 60, 59, 57, 55, 51, 50, 48, 47, 45, 43, 39, 38, 36, 35, 33, 31, 27, 26, 24, 23, 21, 19, 15, 14, 12, 11, 9, 7          }
+    111, 110, 108, 107, 105, 103, 99, 98, 96, 95, 93, 91, 87, 86, 84, 83, 81, 79, 75, 74, 72, 71, 69, 67, 63, 62, 60, 59, 57, 55, 51, 50, 48, 47, 45, 43, 39, 38, 36, 35, 33, 31, 27, 26, 24, 23, 21, 19, 15, 14, 12, 11, 9, 7                  }
   ,
   {
-    105, 102, 101, 100, 97, 96, 94, 93, 90, 89, 88, 85, 84, 82, 81, 78, 77, 76, 73, 72, 70, 69, 66, 65, 64, 61, 60, 58, 57, 54, 53, 52, 49, 48, 46, 45, 42, 41, 40, 37, 36, 34, 33, 30, 29, 28, 25, 24, 22, 21, 18, 17, 16, 13          }
+    105, 102, 101, 100, 97, 96, 94, 93, 90, 89, 88, 85, 84, 82, 81, 78, 77, 76, 73, 72, 70, 69, 66, 65, 64, 61, 60, 58, 57, 54, 53, 52, 49, 48, 46, 45, 42, 41, 40, 37, 36, 34, 33, 30, 29, 28, 25, 24, 22, 21, 18, 17, 16, 13                  }
   ,
   {
-    103, 102, 101, 100, 98, 96, 94, 91, 90, 89, 88, 86, 84, 82, 79, 78, 77, 76, 74, 72, 70, 67, 66, 65, 64, 62, 60, 58, 55, 54, 53, 52, 50, 48, 46, 43, 42, 41, 40, 38, 36, 34, 31, 30, 29, 28, 26, 24, 22, 19, 18, 17, 16, 14          }
+    103, 102, 101, 100, 98, 96, 94, 91, 90, 89, 88, 86, 84, 82, 79, 78, 77, 76, 74, 72, 70, 67, 66, 65, 64, 62, 60, 58, 55, 54, 53, 52, 50, 48, 46, 43, 42, 41, 40, 38, 36, 34, 31, 30, 29, 28, 26, 24, 22, 19, 18, 17, 16, 14                  }
 };
 
 /*
@@ -217,23 +217,62 @@ void loadFromEEPROM(int eepromAddress, uint8_t * source, int length)
 void save(void)
 {
   int address = 0;
+  EEPROM.write(address + 0, 0xd5);
+  EEPROM.write(address + 1, 0xaa);
+  EEPROM.write(address + 2, 0x96);
+  EEPROM.write(address + 3, 0x01);
+  address += 4;
   saveToEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
-  //  address += sizeof(grid);
-  //  saveToEEPROM(address, (uint8_t *)&grid_width[0], sizeof(grid_width));
-  //  address += sizeof(grid_width);
-  //  saveToEEPROM(address, (uint8_t *)&noteOffset[0], sizeof(noteOffset));
-  //  address += sizeof(noteOffset);
+  address += sizeof(grid);
+  saveToEEPROM(address, (uint8_t *)&grid_width[0], sizeof(grid_width));
+  address += sizeof(grid_width);
+  saveToEEPROM(address, (uint8_t *)&noteOffset[0], sizeof(noteOffset));
+  address += sizeof(noteOffset);
+  saveToEEPROM(address, (uint8_t *)&long_notes[0], sizeof(long_notes));
+  address += sizeof(long_notes);
+  saveToEEPROM(address, (uint8_t *)&volume[0], sizeof(volume));
+  address += sizeof(volume);
+  saveToEEPROM(address, (uint8_t *)&instrument[0], sizeof(instrument));
+  address += sizeof(instrument);
+  saveToEEPROM(address, (uint8_t *)&scale_notes[0], sizeof(scale_notes));
+  address += sizeof(scale_notes);
+  saveToEEPROM(address, (uint8_t *)&tempo[0], sizeof(tempo));
+  address += sizeof(tempo);
+  saveToEEPROM(address, (uint8_t *)&channels[0], sizeof(channels));
+  address += sizeof(channels);
+
+  //1012 bytes it fits, barely
 }
 
 void load(void)
 {
   int address = 0;
-  loadFromEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
-  //  address += sizeof(grid);
-  //  loadFromEEPROM(address, (uint8_t *)&grid_width[0], sizeof(grid_width));
-  //  address += sizeof(grid_width);
-  //  loadFromEEPROM(address, (uint8_t *)&noteOffset[0], sizeof(noteOffset));
-  //  address += sizeof(noteOffset);
+
+  if ((EEPROM.read(address + 0) == 0xd5) && 
+    (EEPROM.read(address + 1) == 0xaa) &&
+    (EEPROM.read(address + 2) == 0x96) &&
+    (EEPROM.read(address + 3) == 0x01))
+  {
+    address += 4;
+    loadFromEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
+    address += sizeof(grid);
+    loadFromEEPROM(address, (uint8_t *)&grid_width[0], sizeof(grid_width));
+    address += sizeof(grid_width);
+    loadFromEEPROM(address, (uint8_t *)&noteOffset[0], sizeof(noteOffset));
+    address += sizeof(noteOffset);
+    loadFromEEPROM(address, (uint8_t *)&long_notes[0], sizeof(long_notes));
+    address += sizeof(long_notes);
+    loadFromEEPROM(address, (uint8_t *)&volume[0], sizeof(volume));
+    address += sizeof(volume);
+    loadFromEEPROM(address, (uint8_t *)&instrument[0], sizeof(instrument));
+    address += sizeof(instrument);
+    loadFromEEPROM(address, (uint8_t *)&scale_notes[0], sizeof(scale_notes));
+    address += sizeof(scale_notes);
+    loadFromEEPROM(address, (uint8_t *)&tempo[0], sizeof(tempo));
+    address += sizeof(tempo);
+    loadFromEEPROM(address, (uint8_t *)&channels[0], sizeof(channels));
+    address += sizeof(channels);
+  }
 }
 
 void setup() 
@@ -267,19 +306,16 @@ void setup()
   memset(scale_notes, 0, sizeof(scale_notes)); // default all grids to major scale
   memset(channels, 2, sizeof(channels)); // default all channels to 2
 
-  for (uint8_t index = 0; index < GRID_SETS; index++) // default all the last layers to channel 10 for mt32 drum channel
-  {
-    channels[0][index] = 3;
-    channels[1][index] = 4;
-    channels[2][index] = 5;
-    channels[3][index] = 6;
-    channels[4][index] = 7;
-    channels[5][index] = 8;
-    channels[6][index] = 10;
-    channels[7][index] = 2;
-  }
+  channels[0] = 3;
+  channels[1] = 4;
+  channels[2] = 5;
+  channels[3] = 6;
+  channels[4] = 7;
+  channels[5] = 8;
+  channels[6] = 10;
+  channels[7] = 2;
 
-  //  load();
+  load();
 
   eScaleOffset.setBounds(0, 44 * 4 + 3); // Set note offset limits
   eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
@@ -288,7 +324,7 @@ void setup()
   eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
   eDisplayOffset.setValue(0);              // *4's for encoder detents
   eVolume.setBounds(0, 127 * 4 + 3); // Set volume limits
-  eVolume.setValue(volume[layer][visible_grid_set] * 4);              // *4's for encoder detents
+  eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
 }
 
 bool flicker_state = true;
@@ -380,7 +416,7 @@ void loop()
 
   if((t - prevReadTime) >= 20L) // 20ms = min Trellis poll time
   {
-    
+
     if(untztrument.readSwitches()) // Button state change?
     { 
       for(uint8_t i=0; i<N_BUTTONS; i++) // For each button...
@@ -392,8 +428,8 @@ void loop()
         {
           if (x != 7)
           {
-            uint8_t temp = channels[layer][playing_grid_set];
-            usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][8-x + y*7] ) , 127, temp);
+            uint8_t temp = channels[layer];
+            usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][8-x + y*7] ) , 127, temp);
             untztrument.clrLED(i);
 
             refresh = true;
@@ -405,22 +441,22 @@ void loop()
           switch (mode)
           {
 
-    case PLAYING_ERASE_PROGRAM_CHANGE_1:
-//          case PLAYING_ERASE_PROGRAM_CHANGE_2:
+          case PLAYING_ERASE_PROGRAM_CHANGE_1:
+          case PLAYING_ERASE_PROGRAM_CHANGE_2:
           case PLAYING_ERASE_CHANNEL_1:
-//          case PLAYING_ERASE_CHANNEL_2:
+          case PLAYING_ERASE_CHANNEL_2:
           case PLAYING_ERASE_LAYER_1:
-//          case PLAYING_ERASE_LAYER_2:
+          case PLAYING_ERASE_LAYER_2:
           case PLAYING_ERASE_GRID_1:
-//          case PLAYING_ERASE_GRID_2:
+          case PLAYING_ERASE_GRID_2:
           case PLAYING_ERASE_WIDTH_1:
-//          case PLAYING_ERASE_WIDTH_2:
+          case PLAYING_ERASE_WIDTH_2:
           case PLAYING_ERASE_SCALE_1:
-//          case PLAYING_ERASE_SCALE_2:
+          case PLAYING_ERASE_SCALE_2:
           case PLAYING_ERASE_C_1:
-//          case PLAYING_ERASE_C_2:
+          case PLAYING_ERASE_C_2:
           case PLAYING_ERASE_MEASURE_1:
-//          case PLAYING_ERASE_MEASURE_2:
+          case PLAYING_ERASE_MEASURE_2:
             // fall through
           case PLAYING:
             if (layer != LAYERS-1)
@@ -435,8 +471,8 @@ void loop()
                 //todo this wont work for other grid set is still playing
                 if (visible_grid_set == playing_grid_set)
                 {
-                  uint8_t temp2 = channels[layer][playing_grid_set];
-                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][y + noteOffset[layer][playing_grid_set]] ) , 127, temp2);
+                  uint8_t temp2 = channels[layer];
+                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]] ) , 127, temp2);
                 }
               }
               else // Turn on
@@ -449,8 +485,8 @@ void loop()
             {
               if (x != 7)
               {
-                uint8_t temp = channels[layer][playing_grid_set];
-                usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][8-x + y*7] ) , 127, temp);
+                uint8_t temp = channels[layer];
+                usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer]][8-x + y*7] ) , 127, temp);
                 untztrument.setLED(i);
               }
               else
@@ -464,7 +500,7 @@ void loop()
 
           case WAIT_FOR_PROGRAM_CHANGE:
             {
-              uint8_t temp = instrument[layer][visible_grid_set];
+              uint8_t temp = instrument[layer];
 
               if (temp >= 64)
               {
@@ -476,9 +512,9 @@ void loop()
               line_horz(temp / 8, false);
 
               temp = x+y*8;
-              instrument[layer][visible_grid_set] = temp;
+              instrument[layer] = temp;
 
-              usbMIDI.sendProgramChange(temp, channels[layer][playing_grid_set]);
+              usbMIDI.sendProgramChange(temp, channels[layer]);
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -492,7 +528,7 @@ void loop()
 
           case WAIT_FOR_PROGRAM_CHANGE_2:
             {
-              uint8_t temp = instrument[layer][visible_grid_set];
+              uint8_t temp = instrument[layer];
               if (temp >= 64)
               {
                 temp = temp - 64;  
@@ -503,9 +539,9 @@ void loop()
               line_horz(temp / 8, false);
 
               temp = x + y*8 + 64;
-              instrument[layer][visible_grid_set] = temp;
+              instrument[layer] = temp;
 
-              usbMIDI.sendProgramChange(temp, channels[layer][playing_grid_set]);
+              usbMIDI.sendProgramChange(temp, channels[layer]);
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -536,9 +572,7 @@ void loop()
 
               // adjust encoder ranges to match current layer
               eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
-              eVolume.setValue(volume[layer][visible_grid_set] * 4);              // *4's for encoder detents
-
-              //save(); // save on layer change, todo too slow, need to do it a byte at a time or at some point that won't hurt performance
+              eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
 
               refresh = true;
               break;
@@ -606,7 +640,7 @@ void loop()
 
           case WAIT_FOR_SCALE:
             {
-              uint8_t temp = scale_notes[layer][visible_grid_set];
+              uint8_t temp = scale_notes[layer];
 
               if (temp > MAX_SCALES)
               {
@@ -622,7 +656,7 @@ void loop()
               {
                 temp = MAX_SCALES - 1;  
               }
-              scale_notes[layer][visible_grid_set] = temp;
+              scale_notes[layer] = temp;
 
               force_first_note = true;
 
@@ -637,14 +671,14 @@ void loop()
 
           case WAIT_FOR_CHANNEL:
             {
-              uint8_t temp = channels[layer][visible_grid_set];
+              uint8_t temp = channels[layer];
 
               // Turn off column and row
               line_vert(temp % 8, false);
               line_horz(temp / 8, false);
 
               temp = x+y*8;
-              channels[layer][visible_grid_set] = temp;
+              channels[layer] = temp;
 
               force_first_note = true;
 
@@ -746,8 +780,8 @@ void loop()
       {
         if((grid[col][layer_index][playing_grid_set] & mask) && (!(grid[(col + 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask) || ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set))))
         {
-          uint8_t temp = channels[layer_index][playing_grid_set];
-          usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index][playing_grid_set]][row + noteOffset[layer_index][playing_grid_set]] ) , 127, temp);
+          uint8_t temp = channels[layer_index];
+          usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]] ) , 127, temp);
         }
       }
     }
@@ -766,12 +800,12 @@ void loop()
     // adjust the volume here so all notes are off when we make the change
     // todo add display of currnet volume level with a vertical bar, possibley show other layer volumes
     temp = eVolume.getValue() / 4;
-    diff = volume[layer][visible_grid_set] - temp;
+    diff = volume[layer] - temp;
     if (diff != 0)
     {
-      volume[layer][visible_grid_set] = temp;
+      volume[layer] = temp;
       // send change volume on channels
-      usbMIDI.sendControlChange(7, temp, channels[layer][playing_grid_set]);
+      usbMIDI.sendControlChange(7, temp, channels[layer]);
     }
 
     // Turn on new column
@@ -784,8 +818,8 @@ void loop()
       {
         if((grid[col][layer_index][playing_grid_set] & mask) && ((!(grid[(col + grid_width[playing_grid_set] - 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask)) || (force_first_note == true)))
         {
-          uint8_t temp = channels[layer_index][playing_grid_set];
-          usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer_index][playing_grid_set]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
+          uint8_t temp = channels[layer_index];
+          usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
           force_first_note = false; // clear trigger if it was set
         }
       }
@@ -812,7 +846,7 @@ void loop()
   case WAIT_FOR_PROGRAM_CHANGE_2:
     {
       // Turn on column and row for a beat to indicate current selection
-      uint8_t temp = instrument[layer][visible_grid_set];
+      uint8_t temp = instrument[layer];
 
       if (temp >= 64)
       {
@@ -828,7 +862,7 @@ void loop()
   case WAIT_FOR_SCALE:
     {
       // Turn on column and row for a beat to indicate current selection
-      uint8_t temp = scale_notes[layer][visible_grid_set];
+      uint8_t temp = scale_notes[layer];
 
       if (temp > MAX_SCALES)
       {
@@ -845,7 +879,7 @@ void loop()
   case WAIT_FOR_CHANNEL:
     {
       // Turn on column and row for a beat to indicate current selection
-      uint8_t temp = channels[layer][visible_grid_set];
+      uint8_t temp = channels[layer];
       line_vert(temp % 8, true);
       line_horz(temp / 8, true);
       break;
@@ -893,7 +927,7 @@ void loop()
 
   case PLAYING_ERASE_PROGRAM_CHANGE_2:
     {
-      uint8_t temp = instrument[layer][visible_grid_set];
+      uint8_t temp = instrument[layer];
 
       if (temp >= 64)
       {
@@ -908,7 +942,7 @@ void loop()
 
   case PLAYING_ERASE_SCALE_2:
     {
-      uint8_t temp = scale_notes[layer][visible_grid_set];
+      uint8_t temp = scale_notes[layer];
 
       if (temp > MAX_SCALES)
       {
@@ -923,7 +957,7 @@ void loop()
 
   case PLAYING_ERASE_CHANNEL_2:
     {
-      uint8_t temp = channels[layer][visible_grid_set];
+      uint8_t temp = channels[layer];
 
       // Turn off column and row after selection
       line_vert(temp % 8, false);
@@ -981,7 +1015,7 @@ void loop()
   default:
     break;
   }
-  
+
   enc::poll(); // Read encoder(s)
 
   // todo temp disable until we have a button to hook it to
@@ -1009,7 +1043,7 @@ void loop()
       mode = WAIT_FOR_SCALE;
 
       // Turn on row for a beat to indicate current selection
-      uint8_t temp = scale_notes[layer][visible_grid_set];
+      uint8_t temp = scale_notes[layer];
 
       if (temp > MAX_SCALES)
       {
@@ -1023,7 +1057,7 @@ void loop()
     else if ((sensor0Val == LOW) && (mode == WAIT_FOR_SCALE)) // pressed the button twice
     {
       // Turn off column and row for a beat to indicate current selection
-      uint8_t temp = scale_notes[layer][visible_grid_set];
+      uint8_t temp = scale_notes[layer];
 
       if (temp > MAX_SCALES)
       {
@@ -1034,7 +1068,7 @@ void loop()
       line_horz(temp / 8, false);
 
       // Turn off column and row for a beat to indicate current selection
-      temp = channels[layer][visible_grid_set];
+      temp = channels[layer];
 
       line_vert(temp % 8, true);
       line_horz(temp / 8, true);
@@ -1045,7 +1079,7 @@ void loop()
     else if ((sensor0Val == LOW) && (mode == WAIT_FOR_CHANNEL)) // pressed the button twice
     {
       // Turn off column and row for a beat to indicate current selection
-      uint8_t temp = channels[layer][visible_grid_set];
+      uint8_t temp = channels[layer];
 
       line_vert(temp % 8, false);
       line_horz(temp / 8, false);
@@ -1060,6 +1094,7 @@ void loop()
   sensor13Val = digitalRead(BUTTON_WIDTH);
   if (sensor13Val != lastSensor13Val)
   {
+    longButtonPressTime = t;
     if ((sensor13Val == LOW) && (mode == PLAYING))
     {
       mode = WAIT_FOR_WIDTH;
@@ -1083,6 +1118,12 @@ void loop()
       mode = PLAYING;
     }  
   }
+  else if ((t - longButtonPressTime > 10000) && (sensor13Val == LOW))
+  {
+    longButtonPressTime = -1;
+    //line_horz(1, true);
+    save(); 
+  }
   lastSensor13Val = sensor13Val;
 
 
@@ -1095,7 +1136,7 @@ void loop()
       mode = WAIT_FOR_PROGRAM_CHANGE;
 
       // Turn on column and row for a beat to indicate current selection
-      uint8_t temp = instrument[layer][visible_grid_set];
+      uint8_t temp = instrument[layer];
 
       if (temp >= 64)
       {
@@ -1113,7 +1154,7 @@ void loop()
     else if ((sensor1Val == LOW) && (mode == WAIT_FOR_PROGRAM_CHANGE_2)) // pressed the button twice
     {
       // Turn off column and row for a beat to indicate current selection
-      uint8_t temp = instrument[layer][visible_grid_set];
+      uint8_t temp = instrument[layer];
 
       if (temp >= 64)
       {
@@ -1239,6 +1280,10 @@ void OnNoteOn(byte channel, byte note, byte velocity)
  while(); // Discard incoming MIDI messages
  }
  */
+
+
+
+
 
 
 
