@@ -11,3 +11,4 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 6. has embedded notes scales (major, minor, chromatic, etc)
 7. can adjust tempo and volume using 2 of the encoders
 8. can adjust position on the scale with the last encoder
+9. saves current state of the sequencer in EEPROM when button is held down for 10 seconds
