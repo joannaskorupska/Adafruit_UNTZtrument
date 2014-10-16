@@ -120,40 +120,40 @@ uint8_t       tempo[GRID_SETS]; // todo hook this up to bpm
 static const uint8_t PROGMEM
 scales[MAX_SCALES][MAX_MIDI_NOTES] = {
   {
-    105, 103, 101, 100, 98, 96, 95, 93, 91, 89, 88, 86, 84, 83, 81, 79, 77, 76, 74, 72, 71, 69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47, 45, 43, 41, 40, 38, 36, 35, 33, 31, 29, 28, 26, 24, 23, 21, 19, 17, 16, 14        }
+    105, 103, 101, 100, 98, 96, 95, 93, 91, 89, 88, 86, 84, 83, 81, 79, 77, 76, 74, 72, 71, 69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47, 45, 43, 41, 40, 38, 36, 35, 33, 31, 29, 28, 26, 24, 23, 21, 19, 17, 16, 14          }
   ,
   {
-    104, 103, 101, 99, 98, 96, 94, 92, 91, 89, 87, 86, 84, 82, 80, 79, 77, 75, 74, 72, 70, 68, 67, 65, 63, 62, 60, 58, 56, 55, 53, 51, 50, 48, 46, 44, 43, 41, 39, 38, 36, 34, 32, 31, 29, 27, 26, 24, 22, 20, 19, 17, 15, 14        }
+    104, 103, 101, 99, 98, 96, 94, 92, 91, 89, 87, 86, 84, 82, 80, 79, 77, 75, 74, 72, 70, 68, 67, 65, 63, 62, 60, 58, 56, 55, 53, 51, 50, 48, 46, 44, 43, 41, 39, 38, 36, 34, 32, 31, 29, 27, 26, 24, 22, 20, 19, 17, 15, 14          }
   ,
   {
-    86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33        }
+    86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33          }
   ,
   {
-    113, 111, 108, 106, 103, 102, 101, 99, 96, 94, 91, 90, 89, 87, 84, 82, 79, 78, 77, 75, 72, 70, 67, 66, 65, 63, 60, 58, 55, 54, 53, 51, 48, 46, 43, 42, 41, 39, 36, 34, 31, 30, 29, 27, 24, 22, 19, 18, 17, 15, 12, 10, 7, 6        }
+    113, 111, 108, 106, 103, 102, 101, 99, 96, 94, 91, 90, 89, 87, 84, 82, 79, 78, 77, 75, 72, 70, 67, 66, 65, 63, 60, 58, 55, 54, 53, 51, 48, 46, 43, 42, 41, 39, 36, 34, 31, 30, 29, 27, 24, 22, 19, 18, 17, 15, 12, 10, 7, 6          }
   ,
   {
-    99, 97, 96, 94, 93, 91, 90, 88, 87, 85, 84, 82, 81, 79, 78, 76, 75, 73, 72, 70, 69, 67, 66, 64, 63, 61, 60, 58, 57, 55, 54, 52, 51, 49, 48, 46, 45, 43, 42, 40, 39, 37, 36, 34, 33, 31, 30, 28, 27, 25, 24, 22, 21, 19        }
+    99, 97, 96, 94, 93, 91, 90, 88, 87, 85, 84, 82, 81, 79, 78, 76, 75, 73, 72, 70, 69, 67, 66, 64, 63, 61, 60, 58, 57, 55, 54, 52, 51, 49, 48, 46, 45, 43, 42, 40, 39, 37, 36, 34, 33, 31, 30, 28, 27, 25, 24, 22, 21, 19          }
   ,
   {
-    95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24        }
+    95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24          }
   ,
   {
-    104, 103, 101, 100, 98, 96, 95, 92, 91, 89, 88, 86, 84, 83, 80, 79, 77, 76, 74, 72, 71, 68, 67, 65, 64, 62, 60, 59, 56, 55, 53, 52, 50, 48, 47, 44, 43, 41, 40, 38, 36, 35, 32, 31, 29, 28, 26, 24, 23, 20, 19, 17, 16, 14        }
+    104, 103, 101, 100, 98, 96, 95, 92, 91, 89, 88, 86, 84, 83, 80, 79, 77, 76, 74, 72, 71, 68, 67, 65, 64, 62, 60, 59, 56, 55, 53, 52, 50, 48, 47, 44, 43, 41, 40, 38, 36, 35, 32, 31, 29, 28, 26, 24, 23, 20, 19, 17, 16, 14          }
   ,
   {
-    104, 103, 101, 99, 98, 96, 95, 92, 91, 89, 87, 86, 84, 83, 80, 79, 77, 75, 74, 72, 71, 68, 67, 65, 63, 62, 60, 59, 56, 55, 53, 51, 50, 48, 47, 44, 43, 41, 39, 38, 36, 35, 32, 31, 29, 27, 26, 24, 23, 20, 19, 17, 15, 14        }
+    104, 103, 101, 99, 98, 96, 95, 92, 91, 89, 87, 86, 84, 83, 80, 79, 77, 75, 74, 72, 71, 68, 67, 65, 63, 62, 60, 59, 56, 55, 53, 51, 50, 48, 47, 44, 43, 41, 39, 38, 36, 35, 32, 31, 29, 27, 26, 24, 23, 20, 19, 17, 15, 14          }
   ,
   {
-    105, 103, 101, 99, 98, 96, 95, 93, 91, 89, 87, 86, 84, 83, 81, 79, 77, 75, 74, 72, 71, 69, 67, 65, 63, 62, 60, 59, 57, 55, 53, 51, 50, 48, 47, 45, 43, 41, 39, 38, 36, 35, 33, 31, 29, 27, 26, 24, 23, 21, 19, 17, 15, 14        }
+    105, 103, 101, 99, 98, 96, 95, 93, 91, 89, 87, 86, 84, 83, 81, 79, 77, 75, 74, 72, 71, 69, 67, 65, 63, 62, 60, 59, 57, 55, 53, 51, 50, 48, 47, 45, 43, 41, 39, 38, 36, 35, 33, 31, 29, 27, 26, 24, 23, 21, 19, 17, 15, 14          }
   ,
   {
-    111, 110, 108, 107, 105, 103, 99, 98, 96, 95, 93, 91, 87, 86, 84, 83, 81, 79, 75, 74, 72, 71, 69, 67, 63, 62, 60, 59, 57, 55, 51, 50, 48, 47, 45, 43, 39, 38, 36, 35, 33, 31, 27, 26, 24, 23, 21, 19, 15, 14, 12, 11, 9, 7        }
+    111, 110, 108, 107, 105, 103, 99, 98, 96, 95, 93, 91, 87, 86, 84, 83, 81, 79, 75, 74, 72, 71, 69, 67, 63, 62, 60, 59, 57, 55, 51, 50, 48, 47, 45, 43, 39, 38, 36, 35, 33, 31, 27, 26, 24, 23, 21, 19, 15, 14, 12, 11, 9, 7          }
   ,
   {
-    105, 102, 101, 100, 97, 96, 94, 93, 90, 89, 88, 85, 84, 82, 81, 78, 77, 76, 73, 72, 70, 69, 66, 65, 64, 61, 60, 58, 57, 54, 53, 52, 49, 48, 46, 45, 42, 41, 40, 37, 36, 34, 33, 30, 29, 28, 25, 24, 22, 21, 18, 17, 16, 13        }
+    105, 102, 101, 100, 97, 96, 94, 93, 90, 89, 88, 85, 84, 82, 81, 78, 77, 76, 73, 72, 70, 69, 66, 65, 64, 61, 60, 58, 57, 54, 53, 52, 49, 48, 46, 45, 42, 41, 40, 37, 36, 34, 33, 30, 29, 28, 25, 24, 22, 21, 18, 17, 16, 13          }
   ,
   {
-    103, 102, 101, 100, 98, 96, 94, 91, 90, 89, 88, 86, 84, 82, 79, 78, 77, 76, 74, 72, 70, 67, 66, 65, 64, 62, 60, 58, 55, 54, 53, 52, 50, 48, 46, 43, 42, 41, 40, 38, 36, 34, 31, 30, 29, 28, 26, 24, 22, 19, 18, 17, 16, 14        }
+    103, 102, 101, 100, 98, 96, 94, 91, 90, 89, 88, 86, 84, 82, 79, 78, 77, 76, 74, 72, 70, 67, 66, 65, 64, 62, 60, 58, 55, 54, 53, 52, 50, 48, 46, 43, 42, 41, 40, 38, 36, 34, 31, 30, 29, 28, 26, 24, 22, 19, 18, 17, 16, 14          }
 };
 
 /*
@@ -269,7 +269,14 @@ void setup()
 
   for (uint8_t index = 0; index < GRID_SETS; index++) // default all the last layers to channel 10 for mt32 drum channel
   {
-    channels[LAYERS-2][index] = 10;
+    channels[0][index] = 3;
+    channels[1][index] = 4;
+    channels[2][index] = 5;
+    channels[3][index] = 6;
+    channels[4][index] = 7;
+    channels[5][index] = 8;
+    channels[6][index] = 10;
+    channels[7][index] = 2;
   }
 
   //  load();
@@ -284,13 +291,15 @@ void setup()
   eVolume.setValue(volume[layer][visible_grid_set] * 4);              // *4's for encoder detents
 }
 
+bool flicker_state = true;
+
 // Turn on (or off) one column of the display
 void line_vert(uint8_t x, boolean setit) 
 {
   for(uint8_t mask=1, y=0; y<8; y++, mask <<= 1) 
   {
     uint8_t i = untztrument.xy2i(x, y);
-    if(setit || (grid[x + display_offset][layer][visible_grid_set] & mask)) 
+    if((setit && flicker_state) || (grid[x + display_offset][layer][visible_grid_set] & mask)) 
     {
       untztrument.setLED(i);
     }
@@ -308,7 +317,7 @@ void line_horz(uint8_t y, boolean setit)
   for(uint8_t column_index=0; column_index < 8; column_index++) 
   {
     uint8_t i = untztrument.xy2i(column_index, y);
-    if(setit || (grid[column_index + display_offset][layer][visible_grid_set] & mask)) 
+    if((setit && flicker_state) || (grid[column_index + display_offset][layer][visible_grid_set] & mask)) 
     {
       untztrument.setLED(i);
     }
@@ -366,8 +375,12 @@ void loop()
 
   enc::poll(); // Read encoder(s)
 
+  //flicker_state = !flicker_state;
+  //refresh = true;
+
   if((t - prevReadTime) >= 20L) // 20ms = min Trellis poll time
   {
+    
     if(untztrument.readSwitches()) // Button state change?
     { 
       for(uint8_t i=0; i<N_BUTTONS; i++) // For each button...
@@ -377,36 +390,37 @@ void loop()
         mask = 1 << y;
         if(untztrument.justReleased(i) && (layer == LAYERS-1)) 
         {
-              if (x != 7)
-              {
-           uint8_t temp = channels[layer][playing_grid_set];
-          usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][8-x + y*7] ) , 127, temp);
-          untztrument.clrLED(i);
- 
-              refresh = true;
-              }
+          if (x != 7)
+          {
+            uint8_t temp = channels[layer][playing_grid_set];
+            usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][8-x + y*7] ) , 127, temp);
+            untztrument.clrLED(i);
+
+            refresh = true;
+          }
         }
 
         if(untztrument.justPressed(i)) 
         { 
           switch (mode)
           {
-          case PLAYING_ERASE_PROGRAM_CHANGE_1:
-          case PLAYING_ERASE_PROGRAM_CHANGE_2:
+
+    case PLAYING_ERASE_PROGRAM_CHANGE_1:
+//          case PLAYING_ERASE_PROGRAM_CHANGE_2:
           case PLAYING_ERASE_CHANNEL_1:
-          case PLAYING_ERASE_CHANNEL_2:
+//          case PLAYING_ERASE_CHANNEL_2:
           case PLAYING_ERASE_LAYER_1:
-          case PLAYING_ERASE_LAYER_2:
+//          case PLAYING_ERASE_LAYER_2:
           case PLAYING_ERASE_GRID_1:
-          case PLAYING_ERASE_GRID_2:
+//          case PLAYING_ERASE_GRID_2:
           case PLAYING_ERASE_WIDTH_1:
-          case PLAYING_ERASE_WIDTH_2:
+//          case PLAYING_ERASE_WIDTH_2:
           case PLAYING_ERASE_SCALE_1:
-          case PLAYING_ERASE_SCALE_2:
+//          case PLAYING_ERASE_SCALE_2:
           case PLAYING_ERASE_C_1:
-          case PLAYING_ERASE_C_2:
+//          case PLAYING_ERASE_C_2:
           case PLAYING_ERASE_MEASURE_1:
-          case PLAYING_ERASE_MEASURE_2:
+//          case PLAYING_ERASE_MEASURE_2:
             // fall through
           case PLAYING:
             if (layer != LAYERS-1)
@@ -435,17 +449,17 @@ void loop()
             {
               if (x != 7)
               {
-              uint8_t temp = channels[layer][playing_grid_set];
-              usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][8-x + y*7] ) , 127, temp);
-              untztrument.setLED(i);
+                uint8_t temp = channels[layer][playing_grid_set];
+                usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer][playing_grid_set]][8-x + y*7] ) , 127, temp);
+                untztrument.setLED(i);
               }
               else
               {
-               visible_grid_set = y;
-               untztrument.setLED(i);
+                visible_grid_set = y;
+                untztrument.setLED(i);
               }
             }
-              refresh = true;
+            refresh = true;
             break;
 
           case WAIT_FOR_PROGRAM_CHANGE:
@@ -524,7 +538,7 @@ void loop()
               eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
               eVolume.setValue(volume[layer][visible_grid_set] * 4);              // *4's for encoder detents
 
-              //save(); // save on layer change
+              //save(); // save on layer change, todo too slow, need to do it a byte at a time or at some point that won't hurt performance
 
               refresh = true;
               break;
@@ -784,6 +798,8 @@ void loop()
     bpm          = eTempo.getValue() /4 ; // Div for encoder detents
     beatInterval = 60000L / bpm;
 
+
+
   }
 
   // replace lines that may have been erased by play column movement
@@ -965,7 +981,7 @@ void loop()
   default:
     break;
   }
-
+  
   enc::poll(); // Read encoder(s)
 
   // todo temp disable until we have a button to hook it to
@@ -1223,6 +1239,7 @@ void OnNoteOn(byte channel, byte note, byte velocity)
  while(); // Discard incoming MIDI messages
  }
  */
+
 
 
 
