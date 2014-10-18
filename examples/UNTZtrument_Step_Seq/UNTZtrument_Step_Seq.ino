@@ -24,16 +24,20 @@
 // still have trouble with notes all off when switch layers and grid sets
 // need to check if long notes still work when changing button grid marks or layer and other switches
 // need a scale with just the mt32 drumkit notes
-// volumes left are right controll (fade)
 // flash notes on other layers as they are played so we can see where the notes are being played on other layers
 // add load/save state by midi note export and recording on an external device
 // need to switch to new instrument on grid switch
 // maybe hide play bar when scrolling to avoid confusion
+// add an SD card reader to load and save multiple sets and larger sets and remove some of the restrictions that we have for the EEPROM
 
 #include <Wire.h>
 #include <EEPROM.h>
 #include <Adafruit_Trellis.h>
 #include <Adafruit_UNTZtrument.h>
+#include <Fluxamasynth.h>
+#include <PgmChange.h>
+
+Fluxamasynth synth;
 
 #ifndef HELLA
 // A standard UNTZtrument has four Trellises in a 2x2 arrangement
@@ -58,12 +62,12 @@ const uint8_t        addr[] = {
 
 // Encoder on pins 4,5 sets tempo.  Optional, not present in
 // standard UNTZtrument, but won't affect things if unconnected.
-enc eScaleOffset(5, 4);
+enc eScaleOffset(5, A4);
 enc eDisplayOffset(9, 8);
 enc eTempo(7, 6);
 enc eVolume(11, 10);
 
-#define BUTTON_WIDTH            13
+#define BUTTON_WIDTH            A5
 #define BUTTON_GRID             0
 #define BUTTON_PROGRAM_CHANGE   1
 #define BUTTON_LAYER            12
@@ -425,6 +429,7 @@ void loop()
           {
             uint8_t temp = channels[layer];
             usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127, temp);
+            synth.noteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127);
             untztrument.clrLED(i);
 
             refresh = true;
@@ -468,6 +473,7 @@ void loop()
                 {
                   uint8_t temp2 = channels[layer];
                   usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]] ) , 127, temp2);
+                  synth.noteOff(temp2, pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]] ));
                 }
               }
               else // Turn on
@@ -482,6 +488,7 @@ void loop()
               {
                 uint8_t temp = channels[layer];
                 usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127, temp);
+                synth.noteOn(temp, pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127);
                 untztrument.setLED(i);
               }
               else
@@ -510,6 +517,8 @@ void loop()
               instrument[layer] = temp;
 
               usbMIDI.sendProgramChange(temp, channels[layer]);
+              synth.programChange(0, channels[layer], temp);
+
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -537,6 +546,7 @@ void loop()
               instrument[layer] = temp;
 
               usbMIDI.sendProgramChange(temp, channels[layer]);
+              synth.programChange(0, channels[layer], temp);
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -777,6 +787,8 @@ void loop()
         {
           uint8_t temp = channels[layer_index];
           usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]] ) , 127, temp);
+          synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]] ));
+
         }
       }
     }
@@ -801,6 +813,7 @@ void loop()
       volume[layer] = temp;
       // send change volume on channels
       usbMIDI.sendControlChange(7, temp, channels[layer]);
+      //synth.controlChange(0, 7, temp, channels[layer]);
     }
 
     // Turn on new column
@@ -815,6 +828,7 @@ void loop()
         {
           uint8_t temp = channels[layer_index];
           usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
+          synth.noteOn(temp, pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127);
           force_first_note = false; // clear trigger if it was set
         }
       }
