@@ -120,40 +120,108 @@ uint8_t       tempo[GRID_SETS]; // todo hook this up to bpm
 // add MT32 drum channel scale with only active notes
 
 static const uint8_t PROGMEM
-scales[MAX_SCALES][MAX_MIDI_NOTES] = {{107, 105, 103, 101, 100, 98, 96, 95, 93, 91, 89, 88, 86, 84, 83, 81, 79, 77, 76, 74, 72, 71, 69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47, 45, 43, 41, 40, 38, 36, 35, 33, 31, 29, 28, 26, 24, 23, 21, 19, 17, 16, 14, 12} ,
-{106, 104, 103, 101, 99, 98, 96, 94, 92, 91, 89, 87, 86, 84, 82, 80, 79, 77, 75, 74, 72, 70, 68, 67, 65, 63, 62, 60, 58, 56, 55, 53, 51, 50, 48, 46, 44, 43, 41, 39, 38, 36, 34, 32, 31, 29, 27, 26, 24, 22, 20, 19, 17, 15, 14, 12} ,
-{87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32} ,
-{114, 113, 111, 108, 106, 103, 102, 101, 99, 96, 94, 91, 90, 89, 87, 84, 82, 79, 78, 77, 75, 72, 70, 67, 66, 65, 63, 60, 58, 55, 54, 53, 51, 48, 46, 43, 42, 41, 39, 36, 34, 31, 30, 29, 27, 24, 22, 19, 18, 17, 15, 12, 10, 7, 6, 5} ,
-{100, 99, 97, 96, 94, 93, 91, 90, 88, 87, 85, 84, 82, 81, 79, 78, 76, 75, 73, 72, 70, 69, 67, 66, 64, 63, 61, 60, 58, 57, 55, 54, 52, 51, 49, 48, 46, 45, 43, 42, 40, 39, 37, 36, 34, 33, 31, 30, 28, 27, 25, 24, 22, 21, 19, 18} ,
-{96, 95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24, 23} ,
-{107, 104, 103, 101, 100, 98, 96, 95, 92, 91, 89, 88, 86, 84, 83, 80, 79, 77, 76, 74, 72, 71, 68, 67, 65, 64, 62, 60, 59, 56, 55, 53, 52, 50, 48, 47, 44, 43, 41, 40, 38, 36, 35, 32, 31, 29, 28, 26, 24, 23, 20, 19, 17, 16, 14, 12} ,
-{107, 104, 103, 101, 99, 98, 96, 95, 92, 91, 89, 87, 86, 84, 83, 80, 79, 77, 75, 74, 72, 71, 68, 67, 65, 63, 62, 60, 59, 56, 55, 53, 51, 50, 48, 47, 44, 43, 41, 39, 38, 36, 35, 32, 31, 29, 27, 26, 24, 23, 20, 19, 17, 15, 14, 12} ,
-{107, 105, 103, 101, 99, 98, 96, 95, 93, 91, 89, 87, 86, 84, 83, 81, 79, 77, 75, 74, 72, 71, 69, 67, 65, 63, 62, 60, 59, 57, 55, 53, 51, 50, 48, 47, 45, 43, 41, 39, 38, 36, 35, 33, 31, 29, 27, 26, 24, 23, 21, 19, 17, 15, 14, 12} ,
-{115, 111, 110, 108, 107, 105, 103, 99, 98, 96, 95, 93, 91, 87, 86, 84, 83, 81, 79, 75, 74, 72, 71, 69, 67, 63, 62, 60, 59, 57, 55, 51, 50, 48, 47, 45, 43, 39, 38, 36, 35, 33, 31, 27, 26, 24, 23, 21, 19, 15, 14, 12, 11, 9, 7, 3} ,
-{106, 105, 102, 101, 100, 97, 96, 94, 93, 90, 89, 88, 85, 84, 82, 81, 78, 77, 76, 73, 72, 70, 69, 66, 65, 64, 61, 60, 58, 57, 54, 53, 52, 49, 48, 46, 45, 42, 41, 40, 37, 36, 34, 33, 30, 29, 28, 25, 24, 22, 21, 18, 17, 16, 13, 12} ,
-{106, 103, 102, 101, 100, 98, 96, 94, 91, 90, 89, 88, 86, 84, 82, 79, 78, 77, 76, 74, 72, 70, 67, 66, 65, 64, 62, 60, 58, 55, 54, 53, 52, 50, 48, 46, 43, 42, 41, 40, 38, 36, 34, 31, 30, 29, 28, 26, 24, 22, 19, 18, 17, 16, 14, 12} ,
-{96, 95, 93, 92, 91, 89, 88, 87, 85, 84, 83, 81, 80, 79, 77, 76, 75, 73, 72, 71, 69, 68, 67, 65, 64, 63, 61, 60, 59, 57, 56, 55, 53, 52, 51, 49, 48, 47, 45, 44, 43, 41, 40, 39, 37, 36, 35, 33, 32, 31, 29, 28, 27, 25, 24, 23} ,
-{106, 105, 103, 101, 99, 98, 96, 94, 93, 91, 89, 87, 86, 84, 82, 81, 79, 77, 75, 74, 72, 70, 69, 67, 65, 63, 62, 60, 58, 57, 55, 53, 51, 50, 48, 46, 45, 43, 41, 39, 38, 36, 34, 33, 31, 29, 27, 26, 24, 22, 21, 19, 17, 15, 14, 12} ,
-{106, 104, 101, 100, 97, 97, 96, 94, 92, 89, 88, 85, 85, 84, 82, 80, 77, 76, 73, 73, 72, 70, 68, 65, 64, 61, 61, 60, 58, 56, 53, 52, 49, 49, 48, 46, 44, 41, 40, 37, 37, 36, 34, 32, 29, 28, 25, 25, 24, 22, 20, 17, 16, 13, 13, 12} ,
-{106, 104, 102, 101, 99, 97, 96, 94, 92, 90, 89, 87, 85, 84, 82, 80, 78, 77, 75, 73, 72, 70, 68, 66, 65, 63, 61, 60, 58, 56, 54, 53, 51, 49, 48, 46, 44, 42, 41, 39, 37, 36, 34, 32, 30, 29, 27, 25, 24, 22, 20, 18, 17, 15, 13, 12} ,
-{106, 105, 103, 102, 100, 98, 96, 94, 93, 91, 90, 88, 86, 84, 82, 81, 79, 78, 76, 74, 72, 70, 69, 67, 66, 64, 62, 60, 58, 57, 55, 54, 52, 50, 48, 46, 45, 43, 42, 40, 38, 36, 34, 33, 31, 30, 28, 26, 24, 22, 21, 19, 18, 16, 14, 12} ,
-{96, 95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24, 23} ,
-{106, 105, 103, 101, 100, 98, 96, 94, 93, 91, 89, 88, 86, 84, 82, 81, 79, 77, 76, 74, 72, 70, 69, 67, 65, 64, 62, 60, 58, 57, 55, 53, 52, 50, 48, 46, 45, 43, 41, 40, 38, 36, 34, 33, 31, 29, 28, 26, 24, 22, 21, 19, 17, 16, 14, 12} ,
-{124, 122, 120, 117, 115, 112, 110, 108, 105, 103, 100, 98, 96, 93, 91, 88, 86, 84, 81, 79, 76, 74, 72, 69, 67, 64, 62, 60, 57, 55, 52, 50, 48, 45, 43, 40, 38, 36, 33, 31, 28, 26, 24, 21, 19, 16, 14, 12, 9, 7, 4, 2, 0, 253, 251, 248} ,
-{106, 104, 103, 101, 99, 97, 96, 94, 92, 91, 89, 87, 85, 84, 82, 80, 79, 77, 75, 73, 72, 70, 68, 67, 65, 63, 61, 60, 58, 56, 55, 53, 51, 49, 48, 46, 44, 43, 41, 39, 37, 36, 34, 32, 31, 29, 27, 25, 24, 22, 20, 19, 17, 15, 13, 12} ,
-{107, 106, 103, 101, 99, 97, 96, 95, 94, 91, 89, 87, 85, 84, 83, 82, 79, 77, 75, 73, 72, 71, 70, 67, 65, 63, 61, 60, 59, 58, 55, 53, 51, 49, 48, 47, 46, 43, 41, 39, 37, 36, 35, 34, 31, 29, 27, 25, 24, 23, 22, 19, 17, 15, 13, 12} ,
-{96, 95, 94, 93, 91, 89, 88, 87, 86, 84, 83, 82, 81, 79, 77, 76, 75, 74, 72, 71, 70, 69, 67, 65, 64, 63, 62, 60, 59, 58, 57, 55, 53, 52, 51, 50, 48, 47, 46, 45, 43, 41, 40, 39, 38, 36, 35, 34, 33, 31, 29, 28, 27, 26, 24, 23} ,
-{114, 112, 110, 108, 106, 104, 102, 100, 98, 96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4} ,
-{100, 99, 97, 96, 94, 92, 90, 89, 88, 87, 85, 84, 82, 80, 78, 77, 76, 75, 73, 72, 70, 68, 66, 65, 64, 63, 61, 60, 58, 56, 54, 53, 52, 51, 49, 48, 46, 44, 42, 41, 40, 39, 37, 36, 34, 32, 30, 29, 28, 27, 25, 24, 22, 20, 18, 17} ,
-{112, 111, 109, 108, 104, 103, 100, 99, 97, 96, 92, 91, 88, 87, 85, 84, 80, 79, 76, 75, 73, 72, 68, 67, 64, 63, 61, 60, 56, 55, 52, 51, 49, 48, 44, 43, 40, 39, 37, 36, 32, 31, 28, 27, 25, 24, 20, 19, 16, 15, 13, 12, 8, 7, 4, 3} ,
-{123, 122, 120, 117, 115, 111, 110, 108, 105, 103, 99, 98, 96, 93, 91, 87, 86, 84, 81, 79, 75, 74, 72, 69, 67, 63, 62, 60, 57, 55, 51, 50, 48, 45, 43, 39, 38, 36, 33, 31, 27, 26, 24, 21, 19, 15, 14, 12, 9, 7, 3, 2, 0, 253, 251, 247} ,
-{125, 121, 120, 118, 114, 113, 109, 108, 106, 102, 101, 97, 96, 94, 90, 89, 85, 84, 82, 78, 77, 73, 72, 70, 66, 65, 61, 60, 58, 54, 53, 49, 48, 46, 42, 41, 37, 36, 34, 30, 29, 25, 24, 22, 18, 17, 13, 12, 10, 6, 5, 1, 0, 254, 250, 249} ,
-{125, 121, 120, 118, 115, 113, 109, 108, 106, 103, 101, 97, 96, 94, 91, 89, 85, 84, 82, 79, 77, 73, 72, 70, 67, 65, 61, 60, 58, 55, 53, 49, 48, 46, 43, 41, 37, 36, 34, 31, 29, 25, 24, 22, 19, 17, 13, 12, 10, 7, 5, 1, 0, 254, 251, 249} ,
-{123, 122, 120, 116, 115, 111, 110, 108, 104, 103, 99, 98, 96, 92, 91, 87, 86, 84, 80, 79, 75, 74, 72, 68, 67, 63, 62, 60, 56, 55, 51, 50, 48, 44, 43, 39, 38, 36, 32, 31, 27, 26, 24, 20, 19, 15, 14, 12, 8, 7, 3, 2, 0, 252, 251, 247} ,
-{107, 104, 103, 102, 99, 98, 96, 95, 92, 91, 90, 87, 86, 84, 83, 80, 79, 78, 75, 74, 72, 71, 68, 67, 66, 63, 62, 60, 59, 56, 55, 54, 51, 50, 48, 47, 44, 43, 42, 39, 38, 36, 35, 32, 31, 30, 27, 26, 24, 23, 20, 19, 18, 15, 14, 12} ,
-{107, 104, 103, 101, 100, 97, 96, 95, 92, 91, 89, 88, 85, 84, 83, 80, 79, 77, 76, 73, 72, 71, 68, 67, 65, 64, 61, 60, 59, 56, 55, 53, 52, 49, 48, 47, 44, 43, 41, 40, 37, 36, 35, 32, 31, 29, 28, 25, 24, 23, 20, 19, 17, 16, 13, 12} ,
-{106, 104, 102, 100, 99, 97, 96, 94, 92, 90, 88, 87, 85, 84, 82, 80, 78, 76, 75, 73, 72, 70, 68, 66, 64, 63, 61, 60, 58, 56, 54, 52, 51, 49, 48, 46, 44, 42, 40, 39, 37, 36, 34, 32, 30, 28, 27, 25, 24, 22, 20, 18, 16, 15, 13, 12} ,
-{125, 123, 120, 118, 115, 113, 111, 108, 106, 103, 101, 99, 96, 94, 91, 89, 87, 84, 82, 79, 77, 75, 72, 70, 67, 65, 63, 60, 58, 55, 53, 51, 48, 46, 43, 41, 39, 36, 34, 31, 29, 27, 24, 22, 19, 17, 15, 12, 10, 7, 5, 3, 0, 254, 251, 249} 
+scales[MAX_SCALES][MAX_MIDI_NOTES] = {
+  {
+    107, 105, 103, 101, 100, 98, 96, 95, 93, 91, 89, 88, 86, 84, 83, 81, 79, 77, 76, 74, 72, 71, 69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47, 45, 43, 41, 40, 38, 36, 35, 33, 31, 29, 28, 26, 24, 23, 21, 19, 17, 16, 14, 12      } 
+  ,
+  {
+    106, 104, 103, 101, 99, 98, 96, 94, 92, 91, 89, 87, 86, 84, 82, 80, 79, 77, 75, 74, 72, 70, 68, 67, 65, 63, 62, 60, 58, 56, 55, 53, 51, 50, 48, 46, 44, 43, 41, 39, 38, 36, 34, 32, 31, 29, 27, 26, 24, 22, 20, 19, 17, 15, 14, 12      } 
+  ,
+  {
+    87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32      } 
+  ,
+  {
+    114, 113, 111, 108, 106, 103, 102, 101, 99, 96, 94, 91, 90, 89, 87, 84, 82, 79, 78, 77, 75, 72, 70, 67, 66, 65, 63, 60, 58, 55, 54, 53, 51, 48, 46, 43, 42, 41, 39, 36, 34, 31, 30, 29, 27, 24, 22, 19, 18, 17, 15, 12, 10, 7, 6, 5      } 
+  ,
+  {
+    100, 99, 97, 96, 94, 93, 91, 90, 88, 87, 85, 84, 82, 81, 79, 78, 76, 75, 73, 72, 70, 69, 67, 66, 64, 63, 61, 60, 58, 57, 55, 54, 52, 51, 49, 48, 46, 45, 43, 42, 40, 39, 37, 36, 34, 33, 31, 30, 28, 27, 25, 24, 22, 21, 19, 18      } 
+  ,
+  {
+    96, 95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24, 23      } 
+  ,
+  {
+    107, 104, 103, 101, 100, 98, 96, 95, 92, 91, 89, 88, 86, 84, 83, 80, 79, 77, 76, 74, 72, 71, 68, 67, 65, 64, 62, 60, 59, 56, 55, 53, 52, 50, 48, 47, 44, 43, 41, 40, 38, 36, 35, 32, 31, 29, 28, 26, 24, 23, 20, 19, 17, 16, 14, 12      } 
+  ,
+  {
+    107, 104, 103, 101, 99, 98, 96, 95, 92, 91, 89, 87, 86, 84, 83, 80, 79, 77, 75, 74, 72, 71, 68, 67, 65, 63, 62, 60, 59, 56, 55, 53, 51, 50, 48, 47, 44, 43, 41, 39, 38, 36, 35, 32, 31, 29, 27, 26, 24, 23, 20, 19, 17, 15, 14, 12      } 
+  ,
+  {
+    107, 105, 103, 101, 99, 98, 96, 95, 93, 91, 89, 87, 86, 84, 83, 81, 79, 77, 75, 74, 72, 71, 69, 67, 65, 63, 62, 60, 59, 57, 55, 53, 51, 50, 48, 47, 45, 43, 41, 39, 38, 36, 35, 33, 31, 29, 27, 26, 24, 23, 21, 19, 17, 15, 14, 12      } 
+  ,
+  {
+    115, 111, 110, 108, 107, 105, 103, 99, 98, 96, 95, 93, 91, 87, 86, 84, 83, 81, 79, 75, 74, 72, 71, 69, 67, 63, 62, 60, 59, 57, 55, 51, 50, 48, 47, 45, 43, 39, 38, 36, 35, 33, 31, 27, 26, 24, 23, 21, 19, 15, 14, 12, 11, 9, 7, 3      } 
+  ,
+  {
+    106, 105, 102, 101, 100, 97, 96, 94, 93, 90, 89, 88, 85, 84, 82, 81, 78, 77, 76, 73, 72, 70, 69, 66, 65, 64, 61, 60, 58, 57, 54, 53, 52, 49, 48, 46, 45, 42, 41, 40, 37, 36, 34, 33, 30, 29, 28, 25, 24, 22, 21, 18, 17, 16, 13, 12      } 
+  ,
+  {
+    106, 103, 102, 101, 100, 98, 96, 94, 91, 90, 89, 88, 86, 84, 82, 79, 78, 77, 76, 74, 72, 70, 67, 66, 65, 64, 62, 60, 58, 55, 54, 53, 52, 50, 48, 46, 43, 42, 41, 40, 38, 36, 34, 31, 30, 29, 28, 26, 24, 22, 19, 18, 17, 16, 14, 12      } 
+  ,
+  {
+    96, 95, 93, 92, 91, 89, 88, 87, 85, 84, 83, 81, 80, 79, 77, 76, 75, 73, 72, 71, 69, 68, 67, 65, 64, 63, 61, 60, 59, 57, 56, 55, 53, 52, 51, 49, 48, 47, 45, 44, 43, 41, 40, 39, 37, 36, 35, 33, 32, 31, 29, 28, 27, 25, 24, 23      } 
+  ,
+  {
+    106, 105, 103, 101, 99, 98, 96, 94, 93, 91, 89, 87, 86, 84, 82, 81, 79, 77, 75, 74, 72, 70, 69, 67, 65, 63, 62, 60, 58, 57, 55, 53, 51, 50, 48, 46, 45, 43, 41, 39, 38, 36, 34, 33, 31, 29, 27, 26, 24, 22, 21, 19, 17, 15, 14, 12      } 
+  ,
+  {
+    106, 104, 101, 100, 97, 97, 96, 94, 92, 89, 88, 85, 85, 84, 82, 80, 77, 76, 73, 73, 72, 70, 68, 65, 64, 61, 61, 60, 58, 56, 53, 52, 49, 49, 48, 46, 44, 41, 40, 37, 37, 36, 34, 32, 29, 28, 25, 25, 24, 22, 20, 17, 16, 13, 13, 12      } 
+  ,
+  {
+    106, 104, 102, 101, 99, 97, 96, 94, 92, 90, 89, 87, 85, 84, 82, 80, 78, 77, 75, 73, 72, 70, 68, 66, 65, 63, 61, 60, 58, 56, 54, 53, 51, 49, 48, 46, 44, 42, 41, 39, 37, 36, 34, 32, 30, 29, 27, 25, 24, 22, 20, 18, 17, 15, 13, 12      } 
+  ,
+  {
+    106, 105, 103, 102, 100, 98, 96, 94, 93, 91, 90, 88, 86, 84, 82, 81, 79, 78, 76, 74, 72, 70, 69, 67, 66, 64, 62, 60, 58, 57, 55, 54, 52, 50, 48, 46, 45, 43, 42, 40, 38, 36, 34, 33, 31, 30, 28, 26, 24, 22, 21, 19, 18, 16, 14, 12      } 
+  ,
+  {
+    96, 95, 94, 93, 92, 91, 89, 87, 86, 84, 83, 82, 81, 80, 79, 77, 75, 74, 72, 71, 70, 69, 68, 67, 65, 63, 62, 60, 59, 58, 57, 56, 55, 53, 51, 50, 48, 47, 46, 45, 44, 43, 41, 39, 38, 36, 35, 34, 33, 32, 31, 29, 27, 26, 24, 23      } 
+  ,
+  {
+    106, 105, 103, 101, 100, 98, 96, 94, 93, 91, 89, 88, 86, 84, 82, 81, 79, 77, 76, 74, 72, 70, 69, 67, 65, 64, 62, 60, 58, 57, 55, 53, 52, 50, 48, 46, 45, 43, 41, 40, 38, 36, 34, 33, 31, 29, 28, 26, 24, 22, 21, 19, 17, 16, 14, 12      } 
+  ,
+  {
+    124, 122, 120, 117, 115, 112, 110, 108, 105, 103, 100, 98, 96, 93, 91, 88, 86, 84, 81, 79, 76, 74, 72, 69, 67, 64, 62, 60, 57, 55, 52, 50, 48, 45, 43, 40, 38, 36, 33, 31, 28, 26, 24, 21, 19, 16, 14, 12, 9, 7, 4, 2, 0, 253, 251, 248      } 
+  ,
+  {
+    106, 104, 103, 101, 99, 97, 96, 94, 92, 91, 89, 87, 85, 84, 82, 80, 79, 77, 75, 73, 72, 70, 68, 67, 65, 63, 61, 60, 58, 56, 55, 53, 51, 49, 48, 46, 44, 43, 41, 39, 37, 36, 34, 32, 31, 29, 27, 25, 24, 22, 20, 19, 17, 15, 13, 12      } 
+  ,
+  {
+    107, 106, 103, 101, 99, 97, 96, 95, 94, 91, 89, 87, 85, 84, 83, 82, 79, 77, 75, 73, 72, 71, 70, 67, 65, 63, 61, 60, 59, 58, 55, 53, 51, 49, 48, 47, 46, 43, 41, 39, 37, 36, 35, 34, 31, 29, 27, 25, 24, 23, 22, 19, 17, 15, 13, 12      } 
+  ,
+  {
+    96, 95, 94, 93, 91, 89, 88, 87, 86, 84, 83, 82, 81, 79, 77, 76, 75, 74, 72, 71, 70, 69, 67, 65, 64, 63, 62, 60, 59, 58, 57, 55, 53, 52, 51, 50, 48, 47, 46, 45, 43, 41, 40, 39, 38, 36, 35, 34, 33, 31, 29, 28, 27, 26, 24, 23      } 
+  ,
+  {
+    114, 112, 110, 108, 106, 104, 102, 100, 98, 96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4      } 
+  ,
+  {
+    100, 99, 97, 96, 94, 92, 90, 89, 88, 87, 85, 84, 82, 80, 78, 77, 76, 75, 73, 72, 70, 68, 66, 65, 64, 63, 61, 60, 58, 56, 54, 53, 52, 51, 49, 48, 46, 44, 42, 41, 40, 39, 37, 36, 34, 32, 30, 29, 28, 27, 25, 24, 22, 20, 18, 17      } 
+  ,
+  {
+    112, 111, 109, 108, 104, 103, 100, 99, 97, 96, 92, 91, 88, 87, 85, 84, 80, 79, 76, 75, 73, 72, 68, 67, 64, 63, 61, 60, 56, 55, 52, 51, 49, 48, 44, 43, 40, 39, 37, 36, 32, 31, 28, 27, 25, 24, 20, 19, 16, 15, 13, 12, 8, 7, 4, 3      } 
+  ,
+  {
+    123, 122, 120, 117, 115, 111, 110, 108, 105, 103, 99, 98, 96, 93, 91, 87, 86, 84, 81, 79, 75, 74, 72, 69, 67, 63, 62, 60, 57, 55, 51, 50, 48, 45, 43, 39, 38, 36, 33, 31, 27, 26, 24, 21, 19, 15, 14, 12, 9, 7, 3, 2, 0, 253, 251, 247      } 
+  ,
+  {
+    125, 121, 120, 118, 114, 113, 109, 108, 106, 102, 101, 97, 96, 94, 90, 89, 85, 84, 82, 78, 77, 73, 72, 70, 66, 65, 61, 60, 58, 54, 53, 49, 48, 46, 42, 41, 37, 36, 34, 30, 29, 25, 24, 22, 18, 17, 13, 12, 10, 6, 5, 1, 0, 254, 250, 249      } 
+  ,
+  {
+    125, 121, 120, 118, 115, 113, 109, 108, 106, 103, 101, 97, 96, 94, 91, 89, 85, 84, 82, 79, 77, 73, 72, 70, 67, 65, 61, 60, 58, 55, 53, 49, 48, 46, 43, 41, 37, 36, 34, 31, 29, 25, 24, 22, 19, 17, 13, 12, 10, 7, 5, 1, 0, 254, 251, 249      } 
+  ,
+  {
+    123, 122, 120, 116, 115, 111, 110, 108, 104, 103, 99, 98, 96, 92, 91, 87, 86, 84, 80, 79, 75, 74, 72, 68, 67, 63, 62, 60, 56, 55, 51, 50, 48, 44, 43, 39, 38, 36, 32, 31, 27, 26, 24, 20, 19, 15, 14, 12, 8, 7, 3, 2, 0, 252, 251, 247      } 
+  ,
+  {
+    107, 104, 103, 102, 99, 98, 96, 95, 92, 91, 90, 87, 86, 84, 83, 80, 79, 78, 75, 74, 72, 71, 68, 67, 66, 63, 62, 60, 59, 56, 55, 54, 51, 50, 48, 47, 44, 43, 42, 39, 38, 36, 35, 32, 31, 30, 27, 26, 24, 23, 20, 19, 18, 15, 14, 12      } 
+  ,
+  {
+    107, 104, 103, 101, 100, 97, 96, 95, 92, 91, 89, 88, 85, 84, 83, 80, 79, 77, 76, 73, 72, 71, 68, 67, 65, 64, 61, 60, 59, 56, 55, 53, 52, 49, 48, 47, 44, 43, 41, 40, 37, 36, 35, 32, 31, 29, 28, 25, 24, 23, 20, 19, 17, 16, 13, 12      } 
+  ,
+  {
+    106, 104, 102, 100, 99, 97, 96, 94, 92, 90, 88, 87, 85, 84, 82, 80, 78, 76, 75, 73, 72, 70, 68, 66, 64, 63, 61, 60, 58, 56, 54, 52, 51, 49, 48, 46, 44, 42, 40, 39, 37, 36, 34, 32, 30, 28, 27, 25, 24, 22, 20, 18, 16, 15, 13, 12      } 
+  ,
+  {
+    125, 123, 120, 118, 115, 113, 111, 108, 106, 103, 101, 99, 96, 94, 91, 89, 87, 84, 82, 79, 77, 75, 72, 70, 67, 65, 63, 60, 58, 55, 53, 51, 48, 46, 43, 41, 39, 36, 34, 31, 29, 27, 24, 22, 19, 17, 15, 12, 10, 7, 5, 3, 0, 254, 251, 249      } 
 };
 
 /*
@@ -255,9 +323,9 @@ void load(void)
 {
   int address = 0;
 
- // check for a magic number and a format version number
+  // check for a magic number and a format version number
   if ((EEPROM.read(address + 0) == 0xd5) && // magic number d6aa96
-    (EEPROM.read(address + 1) == 0xaa) &&
+  (EEPROM.read(address + 1) == 0xaa) &&
     (EEPROM.read(address + 2) == 0x96) &&
     (EEPROM.read(address + 3) == 0x02)) // version 2
   {
@@ -330,7 +398,7 @@ void setup()
   channels[6] = 10;
   channels[7] = 2;
 
-  load();
+  load(); // attempt to load from eeprom
 
   eScaleOffset.setBounds(0, 44 * 4 + 3); // Set note offset limits
   eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
@@ -340,6 +408,19 @@ void setup()
   eDisplayOffset.setValue(0);              // *4's for encoder detents
   eVolume.setBounds(0, 127 * 4 + 3); // Set volume limits
   eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
+
+  if (layer == LAYERS-1)
+  {
+    untztrument.setLED(untztrument.xy2i(7, visible_grid_set));
+  }
+  else
+  {
+    // redraw whole screen 
+    for (uint8_t x = 0; x < 8; x++)
+    {
+      line_vert(x, false);
+    }
+  }
 }
 
 bool flicker_state = true;
@@ -350,7 +431,18 @@ void line_vert(uint8_t x, boolean setit)
   for(uint8_t mask=1, y=0; y<8; y++, mask <<= 1) 
   {
     uint8_t i = untztrument.xy2i(x, y);
-    if((setit && (layer == LAYERS-1)) || (setit && flicker_state) || (grid[x + display_offset][layer][visible_grid_set] & mask)) 
+    if (layer == LAYERS-1)
+    {
+      if (setit)
+      {
+        untztrument.setLED(i);
+      }
+      else          
+      {
+        untztrument.clrLED(i);
+      }
+    }
+    else if((setit && flicker_state) || (grid[x + display_offset][layer][visible_grid_set] & mask)) 
     {
       untztrument.setLED(i);
     }
@@ -368,11 +460,22 @@ void line_horz(uint8_t y, boolean setit)
   for(uint8_t column_index=0; column_index < 8; column_index++) 
   {
     uint8_t i = untztrument.xy2i(column_index, y);
-    if((setit && (layer == LAYERS-1)) || (setit && flicker_state) || (grid[column_index + display_offset][layer][visible_grid_set] & mask)) 
+     if (layer == LAYERS-1)
+    {
+      if (setit)
+      {
+        untztrument.setLED(i);
+      }
+      else          
+      {
+        untztrument.clrLED(i);
+      }
+    }
+   else if((setit && flicker_state) || (grid[column_index + display_offset][layer][visible_grid_set] & mask)) 
     {
       untztrument.setLED(i);
     }
-    else          
+    else
     {
       untztrument.clrLED(i);
     }
@@ -456,7 +559,6 @@ void loop()
         { 
           switch (mode)
           {
-
           case PLAYING_ERASE_PROGRAM_CHANGE_1:
           case PLAYING_ERASE_PROGRAM_CHANGE_2:
           case PLAYING_ERASE_CHANNEL_1:
@@ -595,7 +697,7 @@ void loop()
               // adjust encoder ranges to match current layer
               if (layer != LAYERS -1 )
               {
-              eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
+                eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
               }
               eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
 
@@ -620,9 +722,9 @@ void loop()
               // adjust encoder ranges to match next grid set on current layer
               if (layer != LAYERS -1 )
               {
-               eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
-               eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
-               eDisplayOffset.setValue(0);              // *4's for encoder detents
+                eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
+                eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
+                eDisplayOffset.setValue(0);              // *4's for encoder detents
               }
               // Turn on col for a beat to indicate selection
               line_vert(visible_grid_set, true);
@@ -651,12 +753,12 @@ void loop()
               grid_width[visible_grid_set] = temp;
 
               // adjust encoder ranges to match
-               if (layer != LAYERS -1 )
+              if (layer != LAYERS -1 )
               {
-               eDisplayOffset.setBounds(0, (temp - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
-               eDisplayOffset.setValue(0);              // *4's for encoder detents
+                eDisplayOffset.setBounds(0, (temp - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
+                eDisplayOffset.setValue(0);              // *4's for encoder detents
               }
-              
+
               temp = temp - 1;
 
               // Turn on column and row for a beat to indicate selection
@@ -737,82 +839,82 @@ void loop()
   // adjust the note offset here so all notes are off when we make the change
   if (layer != LAYERS -1 )
   {
-  int temp = eScaleOffset.getValue() / 4;
-  int diff = noteOffset[layer][visible_grid_set] - temp;
-  if (diff != 0)
-  {
-    noteOffset[layer][visible_grid_set] = temp;
-
-    // shift all notes and redraw columns
-    for(uint8_t column_index=0; column_index < grid_width[visible_grid_set]; column_index++) 
+    int temp = eScaleOffset.getValue() / 4;
+    int diff = noteOffset[layer][visible_grid_set] - temp;
+    if (diff != 0)
     {
-      if (diff > 0)
-      {
-        // todo need to stop the notes that will be scrolled off
-        grid[column_index][layer][visible_grid_set] <<= diff;
-      }
-      else
-      {
-        grid[column_index][layer][visible_grid_set] >>= abs(diff);
-      }
-    }
+      noteOffset[layer][visible_grid_set] = temp;
 
-    // shift all notes and redraw columns
-    for(uint8_t row_index=0; row_index < grid_width[visible_grid_set]; row_index++) 
-    {
-      if (((temp + row_index) % 7) == 0) //todo this needs to actually point to the C's in a scale (%7 for the moment), scales can have different sizes but Middle C is always placed in the center of the note scale. 
+      // shift all notes and redraw columns
+      for(uint8_t column_index=0; column_index < grid_width[visible_grid_set]; column_index++) 
       {
-        line_horz(row_index, true);
-        //todo need to adjust encoder value back a notch when at limit so that we can detect when it moves further at the end of travel by looking at the undivided by 4 value
+        if (diff > 0)
+        {
+          // todo need to stop the notes that will be scrolled off
+          grid[column_index][layer][visible_grid_set] <<= diff;
+        }
+        else
+        {
+          grid[column_index][layer][visible_grid_set] >>= abs(diff);
+        }
       }
-      else
-      {
-        line_horz(row_index, false);
-      }
-    }
 
-    mode = PLAYING_ERASE_C_1;
-    refresh      = true;
-  }
+      // shift all notes and redraw columns
+      for(uint8_t row_index=0; row_index < grid_width[visible_grid_set]; row_index++) 
+      {
+        if (((temp + row_index) % 7) == 0) //todo this needs to actually point to the C's in a scale (%7 for the moment), scales can have different sizes but Middle C is always placed in the center of the note scale. 
+        {
+          line_horz(row_index, true);
+          //todo need to adjust encoder value back a notch when at limit so that we can detect when it moves further at the end of travel by looking at the undivided by 4 value
+        }
+        else
+        {
+          line_horz(row_index, false);
+        }
+      }
+
+      mode = PLAYING_ERASE_C_1;
+      refresh      = true;
+    }
   }
 
 
   if (layer != LAYERS -1 )
   {
-  // adjust the note offset here so all notes are off when we make the change
-  int temp = eDisplayOffset.getValue() / 4;
-  int diff = display_offset - temp;
-  if (diff != 0)
-  {
-    display_offset = temp;
-
-    // redraw all columns
-    for(uint8_t column_index=0; column_index < BUTTON_GRID_WIDTH; column_index++) 
+    // adjust the note offset here so all notes are off when we make the change
+    int temp = eDisplayOffset.getValue() / 4;
+    int diff = display_offset - temp;
+    if (diff != 0)
     {
-      if (((temp + column_index) % 4) == 0) //todo hard coded 4 beats a measure for indicator, need to make configured by grid width setting
-      {
-        line_vert(column_index, true);
-        //todo need to adjust encoder value back a notch when at limit so that we can detect when it moves further at the end of travel by looking at the undivided by 4 value
-      }
-      else
-      {
-        line_vert(column_index, false);
-      }
-    }
+      display_offset = temp;
 
-    mode = PLAYING_ERASE_MEASURE_1;
-    refresh      = true;
+      // redraw all columns
+      for(uint8_t column_index=0; column_index < BUTTON_GRID_WIDTH; column_index++) 
+      {
+        if (((temp + column_index) % 4) == 0) //todo hard coded 4 beats a measure for indicator, need to make configured by grid width setting
+        {
+          line_vert(column_index, true);
+          //todo need to adjust encoder value back a notch when at limit so that we can detect when it moves further at the end of travel by looking at the undivided by 4 value
+        }
+        else
+        {
+          line_vert(column_index, false);
+        }
+      }
+
+      mode = PLAYING_ERASE_MEASURE_1;
+      refresh      = true;
+    }
   }
-              }
-              
+
   if((t - prevBeatTime) >= beatInterval) // Next beat?
   {
-// don't draw the prgress bar on the performance layer
-if (layer != LAYERS - 1)
-{
-    // Turn off old column
-    line_vert(col - display_offset, false);
-}
+    // don't draw the prgress bar on the performance layer
+    if (layer != LAYERS - 1)
+    {
+      // Turn off old column
+      line_vert(col - display_offset, false);
+    }
     // stop playing notes on old column on all layers
     for(uint8_t layer_index=0;layer_index<LAYERS-1; layer_index++) 
     {
@@ -821,8 +923,15 @@ if (layer != LAYERS - 1)
         if((grid[col][layer_index][playing_grid_set] & mask) && (!(grid[(col + 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask) || ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set))))
         {
           uint8_t temp = channels[layer_index];
-          usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
-          synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127);
+          uint8_t note = row + noteOffset[layer_index][playing_grid_set];
+          uint8_t midinote = pgm_read_byte(&scales[scale_notes[layer_index]][note]);
+          usbMIDI.sendNoteOff(midinote, 127, temp);
+          synth.noteOff(temp, midinote, 127);
+
+          if (layer == LAYERS -1)
+          {
+            untztrument.clrLED(untztrument.xy2i((MAX_MIDI_NOTES - note - 1) % 7, (note) / 7));
+          }
         }
       }
     }
@@ -850,12 +959,12 @@ if (layer != LAYERS - 1)
       synth.setChannelVolume(channels[layer], temp);
     }
 
-// don't draw the prgress bar on the performance layer
-if (layer != LAYERS - 1)
-{
-    // Turn on new column
-    line_vert(col - display_offset, true);
-}
+    // don't draw the prgress bar on the performance layer
+    if (layer != LAYERS - 1)
+    {
+      // Turn on new column
+      line_vert(col - display_offset, true);
+    }
     // play notes on new column on all layers
     for(uint8_t layer_index=0;layer_index<LAYERS - 1; layer_index++) 
     {
@@ -864,9 +973,16 @@ if (layer != LAYERS - 1)
         if((grid[col][layer_index][playing_grid_set] & mask) && ((!(grid[(col + grid_width[playing_grid_set] - 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask)) || (force_first_note == true)))
         {
           uint8_t temp = channels[layer_index];
-          usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
-          synth.noteOn(temp, pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127);
+          uint8_t note = row + noteOffset[layer_index][playing_grid_set];
+          uint8_t midinote = pgm_read_byte(&scales[scale_notes[layer_index]][note]);
+          usbMIDI.sendNoteOn(midinote, 127, temp);
+          synth.noteOn(temp, midinote, 127);
           force_first_note = false; // clear trigger if it was set
+
+          if (layer == LAYERS -1)
+          {
+            untztrument.setLED(untztrument.xy2i((MAX_MIDI_NOTES - note - 1) % 7, (note) / 7));
+          }
         }
       }
     }
@@ -1246,12 +1362,17 @@ if (layer != LAYERS - 1)
   }
   lastSensor12Val = sensor12Val;
 
-// don't draw the prgress bar on the performance layer
-if (layer != LAYERS - 1)
-{
-  // Turn on new column
-  line_vert(col - display_offset, true);
-}
+  // don't draw the prgress bar on the performance layer
+  if (layer != LAYERS - 1)
+  {
+    // Turn on new column
+    line_vert(col - display_offset, true);
+  }
+  else
+    {
+      untztrument.setLED(untztrument.xy2i(7, visible_grid_set));
+    }
+
 
   if (refresh == true) 
   {
@@ -1327,6 +1448,9 @@ void OnNoteOn(byte channel, byte note, byte velocity)
  while(); // Discard incoming MIDI messages
  }
  */
+
+
+
 
 
 
