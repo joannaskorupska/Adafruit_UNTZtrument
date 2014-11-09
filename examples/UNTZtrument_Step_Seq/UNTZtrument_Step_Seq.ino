@@ -389,7 +389,6 @@ void setup()
   memset(scale_notes, 0, sizeof(scale_notes)); // default all grids to major scale
   memset(channels, 2, sizeof(channels)); // default all channels to 2
   memset(long_notes, 0, sizeof(long_notes));  // default all layers to short notes
-  long_notes[6] = 1;
   
   channels[0] = 3;
   channels[1] = 4;
