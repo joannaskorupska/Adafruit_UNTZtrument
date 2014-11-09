@@ -388,7 +388,9 @@ void setup()
   memset(grid_width, 16, sizeof(grid_width)); // default all grids to 16 beats wide
   memset(scale_notes, 0, sizeof(scale_notes)); // default all grids to major scale
   memset(channels, 2, sizeof(channels)); // default all channels to 2
-
+  memset(long_notes, 0, sizeof(long_notes));  // default all layers to short notes
+  long_notes[6] = 1;
+  
   channels[0] = 3;
   channels[1] = 4;
   channels[2] = 5;
@@ -751,7 +753,7 @@ void loop()
                 temp = GRID_WIDTH;
               }
               grid_width[visible_grid_set] = temp;
-
+              
               // adjust encoder ranges to match
               if (layer != LAYERS -1 )
               {
@@ -789,7 +791,17 @@ void loop()
                 temp = MAX_SCALES - 1;  
               }
               scale_notes[layer] = temp;
+              // flip the long note setting
+              if (long_notes[layer] == 0)
+              {
+                long_notes[layer] = 1;              
+              }
+              else
+              {
+                long_notes[layer] = 0;           
+              }
 
+              
               force_first_note = true;
 
               // Turn on column and row for a beat to indicate selection
@@ -909,7 +921,7 @@ void loop()
 
   if((t - prevBeatTime) >= beatInterval) // Next beat?
   {
-    // don't draw the prgress bar on the performance layer
+    // don't draw the progress bar on the performance layer
     if (layer != LAYERS - 1)
     {
       // Turn off old column
@@ -920,7 +932,11 @@ void loop()
     {
       for(uint8_t row=0, mask=1; row<8; row++, mask <<= 1) 
       {
-        if((grid[col][layer_index][playing_grid_set] & mask) && (!(grid[(col + 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask) || ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set))))
+        uint8_t this_grid_width = grid_width[playing_grid_set];
+        uint8_t this_note = grid[col                        ][layer_index][playing_grid_set] & mask;
+        uint8_t next_note = grid[(col + 1) % this_grid_width][layer_index][playing_grid_set] & mask;
+        uint8_t about_to_switch_grids = ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set));
+        if(this_note && (!long_notes[layer_index] || (!next_note || about_to_switch_grids)))
         {
           uint8_t temp = channels[layer_index];
           uint8_t note = row + noteOffset[layer_index][playing_grid_set];
@@ -970,7 +986,12 @@ void loop()
     {
       for (uint8_t row=0, mask=1; row<8; row++, mask <<= 1) 
       {
-        if((grid[col][layer_index][playing_grid_set] & mask) && ((!(grid[(col + grid_width[playing_grid_set] - 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask)) || (force_first_note == true)))
+        uint8_t this_grid_width = grid_width[playing_grid_set];
+        uint8_t this_note = grid[col                                                       ][layer_index][playing_grid_set] & mask;
+        uint8_t last_note = grid[(col + grid_width[playing_grid_set] - 1) % this_grid_width][layer_index][playing_grid_set] & mask;
+        uint8_t about_to_switch_grids = ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set));
+
+        if (this_note && (!long_notes[layer_index] || (!last_note || force_first_note)))
         {
           uint8_t temp = channels[layer_index];
           uint8_t note = row + noteOffset[layer_index][playing_grid_set];
@@ -1362,16 +1383,17 @@ void loop()
   }
   lastSensor12Val = sensor12Val;
 
-  // don't draw the prgress bar on the performance layer
-  if (layer != LAYERS - 1)
-  {
-    // Turn on new column
-    line_vert(col - display_offset, true);
-  }
-  else
+   // draw grid indicator on performance layer
+  if (layer == LAYERS - 1)
     {
       untztrument.setLED(untztrument.xy2i(7, visible_grid_set));
     }
+   // draw the progress bar on other layers
+   else 
+ {
+    // Turn on new column
+    line_vert(col - display_offset, true);
+  }
 
 
   if (refresh == true) 
