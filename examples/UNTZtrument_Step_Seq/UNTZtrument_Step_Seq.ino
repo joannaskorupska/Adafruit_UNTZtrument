@@ -17,6 +17,7 @@
 // add flicker to UI display indicators to vertical and horizontal bars so they are distict from the notes
 // add flicker from notes on other layers when playing notes, maybe not as much as the tanori
 // add computer generated music or accompiment
+// add blutooth audio output
 // support less than 8 wide grid when scrolling and disable keys on right side
 // add a playlist to play complete song based on layer sets, requires measures to have the same width
 // need to properly restore volumes, instruments, tempo, etc. when switching sets and layers
@@ -28,7 +29,9 @@
 // add load/save state by midi note export and recording on an external device
 // need to switch to new instrument on grid switch
 // maybe hide play bar when scrolling to avoid confusion
-// add an SD card reader to load and save multiple sets and larger sets and remove some of the restrictions that we have for the EEPROM
+// add an SD card reader to load and save multiple sets and larger sets and remove some of the restrictions that we have for the EEPROM saving
+// switch grids on measure bars so you you can change earlier than at the end of a grid, less waiting.
+// Add some multi colored LED underneath to dance to the music
 
 #include <Wire.h>
 #include <EEPROM.h>
@@ -91,12 +94,12 @@ boolean       force_first_note = false;
 #define GRID_WIDTH     16
 #define GRID_SETS      8
 
-uint8_t       grid[GRID_WIDTH][LAYERS - 1][GRID_SETS]; // bitfield
+uint8_t       grid[GRID_WIDTH][LAYERS - 1][GRID_SETS]; // bitfield. last layer is performance laye so does not need storage
 
 uint8_t       channels[LAYERS];  // 1 to 127, 1 bit free
 uint8_t       long_notes[LAYERS] = {
   1, 1, 1, 1, 1, 1, 1, 0}; // 0 to 1, 7 bits free
-uint8_t       noteOffset[LAYERS - 1][GRID_SETS]; // 0 to (MAX_MIDI_NOTES-BUTTON_GRID_WIDTH), 2 bits free
+uint8_t       noteOffset[LAYERS - 1][GRID_SETS]; // 0 to (MAX_MIDI_NOTES-BUTTON_GRID_WIDTH), 2 bits free, last layer is performance laye so does not need storage
 uint8_t       volume[LAYERS]; // 0 to 127, 1 bit free
 uint8_t       instrument[LAYERS]; // 1 to 127, 1 bit free
 uint8_t       scale_notes[LAYERS]; // 0 to (MAX_SCALES-1), 4 bits free
@@ -214,10 +217,11 @@ void loadFromEEPROM(int eepromAddress, uint8_t * source, int length)
 void save(void)
 {
   int address = 0;
-  EEPROM.write(address + 0, 0xd5);
+  // write a magic number and a format version number
+  EEPROM.write(address + 0, 0xd5); // magic number d6aa96
   EEPROM.write(address + 1, 0xaa);
   EEPROM.write(address + 2, 0x96);
-  EEPROM.write(address + 3, 0x01);
+  EEPROM.write(address + 3, 0x02); // version 2
   address += 4;
   saveToEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
   address += sizeof(grid);
@@ -237,20 +241,25 @@ void save(void)
   address += sizeof(tempo);
   saveToEEPROM(address, (uint8_t *)&channels[0], sizeof(channels));
   address += sizeof(channels);
+  saveToEEPROM(address, (uint8_t *)&playing_grid_set, sizeof(playing_grid_set));
+  address += sizeof(playing_grid_set);
+  saveToEEPROM(address, (uint8_t *)&layer, sizeof(layer));
+  address += sizeof(layer);
+  saveToEEPROM(address, (uint8_t *)&display_offset, sizeof(display_offset));
+  address += sizeof(display_offset);
 
-  //1012 bytes it fits, barely
-  
-  // todo add layer, grid, offset to restart exactly where we left off
+  //1015 bytes it fits, barely
 }
 
 void load(void)
 {
   int address = 0;
 
-  if ((EEPROM.read(address + 0) == 0xd5) && 
+ // check for a magic number and a format version number
+  if ((EEPROM.read(address + 0) == 0xd5) && // magic number d6aa96
     (EEPROM.read(address + 1) == 0xaa) &&
     (EEPROM.read(address + 2) == 0x96) &&
-    (EEPROM.read(address + 3) == 0x01))
+    (EEPROM.read(address + 3) == 0x02)) // version 2
   {
     address += 4;
     loadFromEEPROM(address, (uint8_t *)&grid[0], sizeof(grid));
@@ -271,6 +280,13 @@ void load(void)
     address += sizeof(tempo);
     loadFromEEPROM(address, (uint8_t *)&channels[0], sizeof(channels));
     address += sizeof(channels);
+    loadFromEEPROM(address, (uint8_t *)&playing_grid_set, sizeof(playing_grid_set));
+    visible_grid_set = playing_grid_set;
+    address += sizeof(playing_grid_set);
+    loadFromEEPROM(address, (uint8_t *)&layer, sizeof(layer));
+    address += sizeof(layer);
+    loadFromEEPROM(address, (uint8_t *)&display_offset, sizeof(display_offset));
+    address += sizeof(display_offset);
   }
 }
 
@@ -334,7 +350,7 @@ void line_vert(uint8_t x, boolean setit)
   for(uint8_t mask=1, y=0; y<8; y++, mask <<= 1) 
   {
     uint8_t i = untztrument.xy2i(x, y);
-    if((setit && flicker_state) || (grid[x + display_offset][layer][visible_grid_set] & mask)) 
+    if((setit && (layer == LAYERS-1)) || (setit && flicker_state) || (grid[x + display_offset][layer][visible_grid_set] & mask)) 
     {
       untztrument.setLED(i);
     }
@@ -352,7 +368,7 @@ void line_horz(uint8_t y, boolean setit)
   for(uint8_t column_index=0; column_index < 8; column_index++) 
   {
     uint8_t i = untztrument.xy2i(column_index, y);
-    if((setit && flicker_state) || (grid[column_index + display_offset][layer][visible_grid_set] & mask)) 
+    if((setit && (layer == LAYERS-1)) || (setit && flicker_state) || (grid[column_index + display_offset][layer][visible_grid_set] & mask)) 
     {
       untztrument.setLED(i);
     }
@@ -428,8 +444,8 @@ void loop()
           if (x != 7)
           {
             uint8_t temp = channels[layer];
-            usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127, temp);
-            synth.noteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127);
+            usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7]), 127, temp);
+            synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7]), 127);
             untztrument.clrLED(i);
 
             refresh = true;
@@ -472,8 +488,8 @@ void loop()
                 if (visible_grid_set == playing_grid_set)
                 {
                   uint8_t temp2 = channels[layer];
-                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]] ) , 127, temp2);
-                  synth.noteOff(temp2, pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]] ));
+                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]]), 127, temp2);
+                  synth.noteOff(temp2, pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]]), 127);
                 }
               }
               else // Turn on
@@ -493,6 +509,7 @@ void loop()
               }
               else
               {
+                untztrument.clrLED(untztrument.xy2i(7, visible_grid_set));
                 visible_grid_set = y;
                 untztrument.setLED(i);
               }
@@ -576,7 +593,10 @@ void loop()
               line_horz(layer, true);
 
               // adjust encoder ranges to match current layer
+              if (layer != LAYERS -1 )
+              {
               eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
+              }
               eVolume.setValue(volume[layer] * 4);              // *4's for encoder detents
 
               refresh = true;
@@ -598,10 +618,12 @@ void loop()
               }
 
               // adjust encoder ranges to match next grid set on current layer
-              eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
-              eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
-              eDisplayOffset.setValue(0);              // *4's for encoder detents
-
+              if (layer != LAYERS -1 )
+              {
+               eScaleOffset.setValue(noteOffset[layer][visible_grid_set] * 4);              // *4's for encoder detents
+               eDisplayOffset.setBounds(0, (grid_width[visible_grid_set] - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
+               eDisplayOffset.setValue(0);              // *4's for encoder detents
+              }
               // Turn on col for a beat to indicate selection
               line_vert(visible_grid_set, true);
               refresh = true;
@@ -629,9 +651,12 @@ void loop()
               grid_width[visible_grid_set] = temp;
 
               // adjust encoder ranges to match
-              eDisplayOffset.setBounds(0, (temp - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
-              eDisplayOffset.setValue(0);              // *4's for encoder detents
-
+               if (layer != LAYERS -1 )
+              {
+               eDisplayOffset.setBounds(0, (temp - BUTTON_GRID_WIDTH) * 4 + 3); // Set diplay offset limits
+               eDisplayOffset.setValue(0);              // *4's for encoder detents
+              }
+              
               temp = temp - 1;
 
               // Turn on column and row for a beat to indicate selection
@@ -710,6 +735,8 @@ void loop()
   enc::poll(); // Read encoder(s)
 
   // adjust the note offset here so all notes are off when we make the change
+  if (layer != LAYERS -1 )
+  {
   int temp = eScaleOffset.getValue() / 4;
   int diff = noteOffset[layer][visible_grid_set] - temp;
   if (diff != 0)
@@ -747,10 +774,14 @@ void loop()
     mode = PLAYING_ERASE_C_1;
     refresh      = true;
   }
+  }
 
+
+  if (layer != LAYERS -1 )
+  {
   // adjust the note offset here so all notes are off when we make the change
-  temp = eDisplayOffset.getValue() / 4;
-  diff = display_offset - temp;
+  int temp = eDisplayOffset.getValue() / 4;
+  int diff = display_offset - temp;
   if (diff != 0)
   {
     display_offset = temp;
@@ -772,12 +803,16 @@ void loop()
     mode = PLAYING_ERASE_MEASURE_1;
     refresh      = true;
   }
-
+              }
+              
   if((t - prevBeatTime) >= beatInterval) // Next beat?
-  { 
+  {
+// don't draw the prgress bar on the performance layer
+if (layer != LAYERS - 1)
+{
     // Turn off old column
     line_vert(col - display_offset, false);
-
+}
     // stop playing notes on old column on all layers
     for(uint8_t layer_index=0;layer_index<LAYERS-1; layer_index++) 
     {
@@ -786,9 +821,8 @@ void loop()
         if((grid[col][layer_index][playing_grid_set] & mask) && (!(grid[(col + 1) % grid_width[playing_grid_set]][layer_index][playing_grid_set] & mask) || ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set))))
         {
           uint8_t temp = channels[layer_index];
-          usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]] ) , 127, temp);
-          synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]] ));
-
+          usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127, temp);
+          synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer_index]][row + noteOffset[layer_index][playing_grid_set]]), 127);
         }
       }
     }
@@ -806,19 +840,22 @@ void loop()
 
     // adjust the volume here so all notes are off when we make the change
     // todo add display of currnet volume level with a vertical bar, possibley show other layer volumes
-    temp = eVolume.getValue() / 4;
-    diff = volume[layer] - temp;
+    int temp = eVolume.getValue() / 4;
+    int diff = volume[layer] - temp;
     if (diff != 0)
     {
       volume[layer] = temp;
       // send change volume on channels
       usbMIDI.sendControlChange(7, temp, channels[layer]);
-      //synth.controlChange(0, 7, temp, channels[layer]);
+      synth.setChannelVolume(channels[layer], temp);
     }
 
+// don't draw the prgress bar on the performance layer
+if (layer != LAYERS - 1)
+{
     // Turn on new column
     line_vert(col - display_offset, true);
-
+}
     // play notes on new column on all layers
     for(uint8_t layer_index=0;layer_index<LAYERS - 1; layer_index++) 
     {
@@ -840,9 +877,6 @@ void loop()
     // todo add display of currnet tempo with a horizontal bar, possibley show other layer tempos
     bpm          = eTempo.getValue() /4 ; // Div for encoder detents
     beatInterval = 60000L / bpm;
-
-
-
   }
 
   // replace lines that may have been erased by play column movement
@@ -1212,8 +1246,12 @@ void loop()
   }
   lastSensor12Val = sensor12Val;
 
+// don't draw the prgress bar on the performance layer
+if (layer != LAYERS - 1)
+{
   // Turn on new column
   line_vert(col - display_offset, true);
+}
 
   if (refresh == true) 
   {
