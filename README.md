@@ -17,7 +17,7 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 
 ![untz step sequencer](/../master/button1.gif?raw=true)
 
-Press button 1 to select the scale, press button 1 again to select the midi channel, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed. Selection of the same scale will alternate between notes being held for a duration or playing the note for each sequence light that is lite.
+Press button 1 to select the scale, press button 1 again to select the midi channel, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed. Selection of the same scale will alternate between notes being held for a duration or playing the note for each sequence light that is lite. See below for the list of scales embedded in the code.
 
 All layers default to the major scale with notes being held. All grid sets have the same scales.
 Layers default to midi channels 3, 4, 5, 6, 7, 8, 9 (drum kit), 2 (performance layer). All grid sets have the same midi channels.
@@ -55,4 +55,40 @@ All layers in a grid set default to the middle volume value. All grid sets have 
 Note: Depending on how you wire the buttons and encoders you may find these functions located on different buttons or encoders.
 
 Note: The performance layer is available on each grid set as layer 8 and is not used for storage of note sequences. Selecting this layer will change the meaning of all the grid buttons on the device. The right most column of buttons display the currently playing grid set and can be used to select which grid set will play next. The rest of the buttons are layed out in rows of octive notes. The rows are indivudal octive scales and have the lowest key on the left and the highest key on the right based on the currently selected scale. Scales that have more or less then seven notes will not be so well organized. Each octive row are stacked so the highest octives are on top and the lowest are on the bottom. You can use this mode to play along with the sequences you have stored.
+
+Scales: (there is room for 64)
+majorScale = 0
+minorScale = 1
+chromaticScale = 2
+bluesScale = 3
+bluesDiminishedScale = 4
+fullMinorScale = 5
+harmonicMajorScale = 6
+harmonicMinorScale = 7
+jazzMinorScale = 8
+hawaiianScale = 9
+orientalScale = 10
+majorMinorScale = 11
+genusChromaticum = 12
+dorian = 13
+indian = 14
+locrian = 15
+lydian = 16
+melodicMinor = 17
+mixolydian = 18
+pentatonic = 19
+phrygian = 20
+turkish = 21
+wholeHalf = 22
+wholeTone = 23
+spanish = 24
+pelog = 25
+kumoi = 26
+iwato = 27
+inSen = 28
+hirojoshi = 29
+hungarianMinor = 30
+bhairav = 31
+superLocrian = 32
+minorPentatonic = 33
 
