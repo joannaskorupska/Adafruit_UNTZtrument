@@ -14,3 +14,8 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 7. can adjust tempo and volume using 2 of the encoders
 8. can adjust position on the scale with the last encoder
 9. saves current state of the sequencer in EEPROM when button is held down for 10 seconds
+
+
+![untz step sequencer](/../master/basic.gif?raw=true)
+
+Button 1 is used to select the scale and the midi channel.
