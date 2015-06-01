@@ -18,4 +18,8 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 
 ![untz step sequencer](/../master/button1.gif?raw=true)
 
-Button 1 is used to select the scale and the midi channel.
+Press button 1 to select the scale or the midi channel.
+
+![untz step sequencer](/../master/rotate1.gif?raw=true)
+
+Rotate button 1 to adjust note range (notes are lost when the scroll off the top or bottom).
