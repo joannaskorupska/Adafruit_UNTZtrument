@@ -17,7 +17,10 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 
 ![untz step sequencer](/../master/button1.gif?raw=true)
 
-Press button 1 to select the scale, press button 1 again to select the midi channel, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed. Selection of the same scale will alternate between notes being held for a duration and playing the note for each sequence light that is lite.
+Press button 1 to select the scale, press button 1 again to select the midi channel, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed. Selection of the same scale will alternate between notes being held for a duration or playing the note for each sequence light that is lite.
+
+All layers default to the major scale with notes being held. All grid sets have the same scales.
+Layers default to midi channels 3, 4, 5, 6, 7, 8, 9 (drum kit), 2 (performance layer). All grid sets have the same midi channels.
 
 Hold button 1 for five seconds to erase everything in volitale memory.
 
@@ -25,20 +28,31 @@ Hold button 1 for five seconds to erase everything in volitale memory.
 
 Rotate button 1 up and down to adjust note pitch range (notes are lost when they scroll off the top or bottom, can be used to quickly erase a single grid).
 
+All layers on all grid sets default to the middle of the scale. Each layer on each grid set can be set indivudually.
+
 Press button 2 to select the layer, press button 2 again to select the grid set, press it again to return to normal. The value is indicated by the position of the horizontal or vertical line on the grid counting from the top or the left. The botton layer (layer 8) is the performance layer (see below). The currently playing grid set will not switch to a newly selected grid set until it has finished playing the current one.
 
 Rotate button 2 up and down to adjust tempo up or down.
 
-Press button 3 to select a midi instrument between 1-64, press button 3 again to select a midi instrument between 65-128, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line. The value is changed by selecting a new value while the current value is being displayed.
+All grid sets defaults to 240 bpm. Individual layers in a grid set cannot have different tempos.
+
+Press button 3 to select a midi instrument between 1-64, press button 3 again to select a midi instrument between 65-128, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed.
+
+All layers default to instrument 0. All grid sets have the same instruments. The midi channel 9 (drum kit) set above will typically overide this setting and use the drum kit instead. 
 
 Rotate button 3 to adjust note sequence measure view left or right. You can have up to 16 note beats per measure.
 
 Press button 4 to select the measure size, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed.
 
+All grid sets default to 16 beats per measure. All layers in a grid set have the same beats per measure.
+
 Hold button 4 for ten seconds to store everything in volatile mememory into non-volitale memory.
 
 Rotate button 4 up and down to adjust volume up or down.
 
+All layers in a grid set default to the middle volume value. All grid sets have the same volumes.
+
 Note: Depending on how you wire the buttons and encoders you may find these functions located on different buttons or encoders.
 
 Note: The performance layer is available on each grid set as layer 8 and is not used for storage of note sequences. Selecting this layer will change the meaning of all the grid buttons on the device. The right most column of buttons display the currently playing grid set and can be used to select which grid set will play next. The rest of the buttons are layed out in rows of octive notes. The rows are indivudal octive scales and have the lowest key on the left and the highest key on the right based on the currently selected scale. Scales that have more or less then seven notes will not be so well organized. Each octive row are stacked so the highest octives are on top and the lowest are on the bottom. You can use this mode to play along with the sequences you have stored.
+
