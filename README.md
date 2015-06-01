@@ -3,7 +3,7 @@ Adafruit_UNTZtrument
 
 The demo step sequencer contains modifications. It uses 4 encoders with push switches for additional input.
 
-![untz step sequencer](/../basic.gif?raw=true)
+![untz step sequencer](/../master/basic.gif?raw=true)
 
 1. implements up to 16 beats on the grid with only an 8x8 untz using one of the encoders for scrolling left and right
 2. the number of beats on the grid is adjustable up to 16
