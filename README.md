@@ -16,6 +16,6 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 9. saves current state of the sequencer in EEPROM when button is held down for 10 seconds
 
 
-![untz step sequencer](/../master/basic.gif?raw=true)
+![untz step sequencer](/../master/button1.gif?raw=true)
 
 Button 1 is used to select the scale and the midi channel.
