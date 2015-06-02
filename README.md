@@ -17,7 +17,11 @@ The demo step sequencer contains modifications. It uses 4 encoders with push swi
 
 ![untz step sequencer](/../master/button1.gif?raw=true)
 
-Press button 1 to select the scale, press button 1 again to select the midi channel, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed. Selection of the same scale will alternate between notes being held for a duration or playing the note for each sequence light that is lite. See below for the list of scales embedded in the code.
+Press button 1 to select the scale, press button 1 again to select the midi channel, press it again to return to normal. The value is indicated by the location of the intersection of the displayed horizontal and vertical line counting left to right and down. The value is changed by selecting a new value while the current value is being displayed. 
+
+![untz step sequencer](/../master/individual.gif?raw=true) ![untz step sequencer](/../master/wholenote.gif?raw=true)
+
+Selection of the same scale will alternate between notes being held for a duration or playing the note for each sequence light that is lite. See below for the list of scales embedded in the code.
 
 All layers default to the major scale with notes being held. All grid sets have the same scales.
 Layers default to midi channels 3, 4, 5, 6, 7, 8, 9 (drum kit), 2 (performance layer). All grid sets have the same midi channels.
