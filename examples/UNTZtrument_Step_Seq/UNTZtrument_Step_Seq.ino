@@ -27,6 +27,7 @@
 // switch grids on measure bars so you you can change earlier than at the end of a grid, less waiting.
 // Add some multi colored LED underneath to dance to the music
 // add eeprom write progress bar
+// store beat sequences that can be used instead of a fixed beat on a measure, allows for more complex beats to be used.
 
 #include <Wire.h>
 #include <EEPROM.h>
@@ -219,45 +220,191 @@ scales[MAX_SCALES][MAX_MIDI_NOTES] = {
 };
 
 /*
-// could store these at 16 bit numbers with byte length embedded in the top 4 bits
- static const uint8_t majorScale[7] = {
- 0,2,4,5,7,9,11};
- static const uint8_t minorScale[7] = {
- 0,2,3,5,7,8,10};
- static const uint8_t chromaticScale[12] = {
- 0,1,2,3,4,5,6,7,8,9,10,11};
- static const uint8_t bluesScale[] = {
- 0,3,5,6,7,10};
- static const uint8_t bluesdiminishedScale[]={
- 0,1,3,4,6,7,9,10};
- static const uint8_t fullMinorScale[]={
- 0,2,3,5,7,8,9,10,11};
- static const uint8_t harmonicMajorScale[]={
- 0,2,4,5,7,8,11};
- static const uint8_t harmonicMinorScale[]={
- 0,2,3,5,7,8,11};
- static const uint8_t jazzminorScale[]={
- 0,2,3,5,7,9,11};
- static const uint8_t hawaiianScale[]={ 
- 0,2,3,7,9,11};
- static const uint8_t orientalScale[]={
- 0,1,4,5,6,9,10};
- static const uint8_t majorMinotScale[]={
- 0,2,4,5,6,7,10};
- 
- uint8_t notes[MAX_MIDI_NOTES];
- 
- void makenotes(uint8_t * scale, uint8_t length)
- {
- for (int index = 0; index < MAX_MIDI_NOTES/2; index++)
- {
- uint8_t scale_offset = ((index / length) * 12);
- uint8_t index_wrap = (index % length);
- notes[MAX_MIDI_NOTES/2 + index] = MIDI_MIDDLE_C - (12 - scale[length - 1 - index_wrap]) - scale_offset;
- notes[MAX_MIDI_NOTES/2 - index - 1] = MIDI_MIDDLE_C + scale[index_wrap] + scale_offset;
- }
- }
- */
+// ConsoleApplication1.cpp : main project file.
+
+#include "stdafx.h"
+
+using namespace System;
+
+#define uint8_t unsigned char
+#define MIDI_MIDDLE_C 60
+#define MAX_MIDI_NOTES 56
+uint8_t notes[MAX_MIDI_NOTES];
+
+// todo need to store these at 16 bit numbers with byte length embedded in the top 4 bits, or store unpacked in program memory
+static const uint8_t majorScale[7] = {
+	0, 2, 4, 5, 7, 9, 11 };
+static const uint8_t minorScale[7] = {
+	0, 2, 3, 5, 7, 8, 10 };
+static const uint8_t chromaticScale[12] = {
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+static const uint8_t bluesScale[] = {
+	0, 3, 5, 6, 7, 10 };
+static const uint8_t bluesDiminishedScale[] = {
+	0, 1, 3, 4, 6, 7, 9, 10 };
+static const uint8_t fullMinorScale[] = {
+	0, 2, 3, 5, 7, 8, 9, 10, 11 };
+static const uint8_t harmonicMajorScale[] = {
+	0, 2, 4, 5, 7, 8, 11 };
+static const uint8_t harmonicMinorScale[] = {
+	0, 2, 3, 5, 7, 8, 11 };
+static const uint8_t jazzMinorScale[] = {
+	0, 2, 3, 5, 7, 9, 11 };
+static const uint8_t hawaiianScale[] = {
+	0, 2, 3, 7, 9, 11 };
+static const uint8_t orientalScale[] = {
+	0, 1, 4, 5, 6, 9, 10 };
+static const uint8_t majorMinorScale[] = {
+	0, 2, 4, 5, 6, 7, 10 };
+
+
+static const uint8_t genusChromaticum[] = {
+	0, 1, 3, 4, 5, 7, 8, 9, 11 };
+static const uint8_t dorian[] = {
+	0, 2, 3, 5, 7, 9, 10 };
+static const uint8_t indian[] = {
+	0, 1, 1, 4, 5, 8, 10 };
+static const uint8_t locrian[] = {
+	0, 1, 3, 5, 6, 8, 10 };
+static const uint8_t lydian[] = {
+	0, 2, 4, 6, 7, 9, 10 };
+static const uint8_t melodicMinor[] = {
+	0, 2, 3, 5, 7, 8, 9, 10, 11 };
+static const uint8_t mixolydian[] = {
+	0, 2, 4, 5, 7, 9, 10 };
+static const uint8_t pentatonic[] = {
+	0, 2, 4, 7, 9 };
+static const uint8_t phrygian[] = {
+	0, 1, 3, 5, 7, 8, 10 };
+static const uint8_t turkish[] = {
+	0, 1, 3, 5, 7, 10, 11 };
+static const uint8_t wholeHalf[] = {
+	0, 2, 3, 4, 5, 7, 9, 10, 11 };
+static const uint8_t wholeTone[] = {
+	0, 2, 4, 6, 8, 10 };
+static const uint8_t spanish[] = {
+	0, 1, 3, 4, 5, 6, 8, 10 };
+static const uint8_t pelog[] = {
+	0, 1, 3, 4, 7, 8 };
+static const uint8_t kumoi[] = {
+	0, 2, 3, 7, 9 };
+static const uint8_t iwato[] = {
+	0, 1, 5, 6, 10 };
+static const uint8_t inSen[] = {
+	0, 1, 5, 7, 10 };
+static const uint8_t hirojoshi[] = {
+	0, 2, 3, 7, 8 };
+static const uint8_t hungarianMinor[] = {
+	0, 2, 3, 6, 7, 8, 11 };
+static const uint8_t bhairav[] = {
+	0, 1, 4, 5, 7, 8, 11 };
+static const uint8_t superLocrian[] = {
+	0, 1, 3, 4, 6, 8, 10 };
+static const uint8_t minorPentatonic[] = {
+	0, 3, 5, 7, 10 };
+
+void makenotes(uint8_t * scale, uint8_t length)
+{
+	for (int index = 0; index < MAX_MIDI_NOTES / 2; index++)
+	{
+		uint8_t scale_offset = ((index / length) * 12);
+		uint8_t index_wrap = (index % length);
+		notes[MAX_MIDI_NOTES / 2 + index] = MIDI_MIDDLE_C - (12 - scale[length - 1 - index_wrap]) - scale_offset;
+		notes[MAX_MIDI_NOTES / 2 - index - 1] = MIDI_MIDDLE_C + scale[index_wrap] + scale_offset;
+	}
+}
+
+void printnotes(String ^name)
+{
+	int index;
+
+	//Console::Write(name);
+	Console::Write("{");
+	for ( index = 0; index < MAX_MIDI_NOTES - 1; index++)
+	{
+		Console::Write(notes[index]);
+		Console::Write(", ");
+	}
+	Console::Write(notes[index]);
+	Console::WriteLine("} ,");
+}
+
+int main(array<System::String ^> ^args)
+{
+	Console::Write("scales[MAX_SCALES][MAX_MIDI_NOTES] = {");
+	makenotes((uint8_t *)majorScale, sizeof(majorScale));
+	printnotes("majorScale");
+	makenotes((uint8_t *)minorScale, sizeof(minorScale));
+	printnotes("minorScale");
+	makenotes((uint8_t *)chromaticScale, sizeof(chromaticScale));
+	printnotes("chromaticScale");
+	makenotes((uint8_t *)bluesScale, sizeof(bluesScale));
+	printnotes("bluesScale");
+	makenotes((uint8_t *)bluesDiminishedScale, sizeof(bluesDiminishedScale));
+	printnotes("bluesDiminishedScale");
+	makenotes((uint8_t *)fullMinorScale, sizeof(fullMinorScale));
+	printnotes("fullMinorScale");
+	makenotes((uint8_t *)harmonicMajorScale, sizeof(harmonicMajorScale));
+	printnotes("harmonicMajorScale");
+	makenotes((uint8_t *)harmonicMinorScale, sizeof(harmonicMinorScale));
+	printnotes("harmonicMinorScale");
+	makenotes((uint8_t *)jazzMinorScale, sizeof(jazzMinorScale));
+	printnotes("jazzMinorScale");
+	makenotes((uint8_t *)hawaiianScale, sizeof(hawaiianScale));
+	printnotes("hawaiianScale");
+	makenotes((uint8_t *)orientalScale, sizeof(orientalScale));
+	printnotes("orientalScale");
+	makenotes((uint8_t *)majorMinorScale, sizeof(majorMinorScale));
+	printnotes("majorMinorScale");
+
+	makenotes((uint8_t *)genusChromaticum, sizeof(genusChromaticum));
+	printnotes("genusChromaticum");
+	makenotes((uint8_t *)dorian, sizeof(dorian));
+	printnotes("dorian");
+	makenotes((uint8_t *)indian, sizeof(indian));
+	printnotes("indian");
+	makenotes((uint8_t *)locrian, sizeof(locrian));
+	printnotes("locrian");
+	makenotes((uint8_t *)lydian, sizeof(lydian));
+	printnotes("lydian");
+	makenotes((uint8_t *)melodicMinor, sizeof(melodicMinor));
+	printnotes("melodicMinor");
+	makenotes((uint8_t *)mixolydian, sizeof(mixolydian));
+	printnotes("mixolydian");
+	makenotes((uint8_t *)pentatonic, sizeof(pentatonic));
+	printnotes("pentatonic");
+	makenotes((uint8_t *)phrygian, sizeof(phrygian));
+	printnotes("phrygian");
+	makenotes((uint8_t *)turkish, sizeof(turkish));
+	printnotes("turkish");
+	makenotes((uint8_t *)wholeHalf, sizeof(wholeHalf));
+	printnotes("wholeHalf");
+	makenotes((uint8_t *)wholeTone, sizeof(wholeTone));
+	printnotes("wholeTone");
+	makenotes((uint8_t *)spanish, sizeof(spanish));
+	printnotes("spanish");
+	makenotes((uint8_t *)pelog, sizeof(pelog));
+	printnotes("pelog");
+	makenotes((uint8_t *)kumoi, sizeof(kumoi));
+	printnotes("kumoi");
+	makenotes((uint8_t *)iwato, sizeof(iwato));
+	printnotes("iwato");
+	makenotes((uint8_t *)inSen, sizeof(inSen));
+	printnotes("inSen");
+	makenotes((uint8_t *)hirojoshi, sizeof(hirojoshi));
+	printnotes("hirojoshi");
+	makenotes((uint8_t *)hungarianMinor, sizeof(hungarianMinor));
+	printnotes("hungarianMinor");
+	makenotes((uint8_t *)bhairav, sizeof(bhairav));
+	printnotes("bhairav");
+	makenotes((uint8_t *)superLocrian, sizeof(superLocrian));
+	printnotes("superLocrian");
+	makenotes((uint8_t *)minorPentatonic, sizeof(minorPentatonic));
+	printnotes("minorPentatonic");
+	Console::Write("};");
+	return 0;
+}
+*/
 
 void saveToEEPROM(int eepromAddress, uint8_t * source, int length)
 {
