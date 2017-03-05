@@ -102,3 +102,6 @@ bhairav = 31
 superLocrian = 32
 minorPentatonic = 33
 
+Schematic
+
+![untz step sequencer](/../master/untz_bb.png?raw=true)
