@@ -104,4 +104,6 @@ minorPentatonic = 33
 
 Schematic
 
+In addition to the standard Untz parts I've added a midi sound board and an amp and speaker for standalone operation. Used the addional four additional rotorary encoders with push buttons with the additional plastic piece from Adafruit. You could also add a battery or just plu it into USB power as I have been doing.
+
 ![untz step sequencer](/../master/untz_bb.png?raw=true)
