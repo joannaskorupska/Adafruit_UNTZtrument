@@ -5,6 +5,8 @@ This demo step sequencer contains modifications from the original provided by Ad
 
 ![untz step sequencer](/../master/basic.gif?raw=true)
 
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/uHj4QAOieCk/0.jpg)](http://www.youtube.com/watch?v=uHj4QAOieCk "Modified UNTZ from Adafruit")
+
 1. implements up to 16 beats on the grid with only an 8x8 untz using one of the encoders for scrolling left and right
 2. the number of beats on the grid is adjustable up to 16
 3. implements up to 8 layers outputing notes on different channels at the same time
