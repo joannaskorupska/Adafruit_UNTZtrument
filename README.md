@@ -3,6 +3,8 @@ Adafruit_UNTZtrument
 
 This demo step sequencer contains modifications from the original provided by AdaFruit. It also uses 4 encoders with push switches for additional input. It also has a midi sound card and a speaker.
 
+It is build with the v1.0.6 version of the Arduino IDE and uses the Fluxamasynth library for serial MIDI output on pin 4 but doesn't really rely on the Fluxamasynth HW, you could use any standard MIDI device. I was not able to get the current versions of Arduino to work with MIDI serial output on the Leonardo board.
+
 ![untz step sequencer](/../master/basic.gif?raw=true)
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/uHj4QAOieCk/0.jpg)](http://www.youtube.com/watch?v=uHj4QAOieCk "Modified UNTZ from Adafruit")
