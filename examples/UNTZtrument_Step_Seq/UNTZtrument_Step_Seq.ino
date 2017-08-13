@@ -34,7 +34,6 @@
 #include <Adafruit_Trellis.h>
 #include <Adafruit_UNTZtrument.h>
 #include <Fluxamasynth.h>
-#include <PgmChange.h>
 
 Fluxamasynth synth;
 
@@ -571,11 +570,11 @@ void setup()
     uint8_t this_instrument = instrument[layer_index];
     uint8_t this_channel = channels[layer_index];
     uint8_t this_volume = volume[layer_index];
-    usbMIDI.sendProgramChange(this_instrument, this_channel);
+    //usbMIDI.sendProgramChange(this_instrument, this_channel);
     synth.programChange(0, this_channel, this_instrument);
-    usbMIDI.sendControlChange(7, this_volume, this_channel);
+    //usbMIDI.sendControlChange(7, this_volume, this_channel);
     synth.setChannelVolume(this_channel, this_volume);
-    usbMIDI.sendControlChange(0x7b, 0, this_channel);
+    //usbMIDI.sendControlChange(0x7b, 0, this_channel);
     synth.allNotesOff(this_channel);
   }
 
@@ -709,8 +708,8 @@ void loop()
           if (x != 7)
           {
             uint8_t temp = channels[layer];
-            usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7]), 127, temp);
-            synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7]), 127);
+            //usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7]), 127, temp);
+            synth.noteOff(temp, pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7]));
             untztrument.clrLED(i);
 
             refresh = true;
@@ -752,8 +751,8 @@ void loop()
                 if (visible_grid_set == playing_grid_set)
                 {
                   uint8_t temp2 = channels[layer];
-                  usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]]), 127, temp2);
-                  synth.noteOff(temp2, pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]]), 127);
+                  //usbMIDI.sendNoteOff(pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]]), 127, temp2);
+                  synth.noteOff(temp2, pgm_read_byte(&scales[scale_notes[layer]][y + noteOffset[layer][playing_grid_set]]));
                 }
               }
               else // Turn on
@@ -767,7 +766,7 @@ void loop()
               if (x != 7)
               {
                 uint8_t temp = channels[layer];
-                usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127, temp);
+                //usbMIDI.sendNoteOn(pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127, temp);
                 synth.noteOn(temp, pgm_read_byte(&scales[scale_notes[layer]][6-x + y*7] ) , 127);
                 untztrument.setLED(i);
               }
@@ -798,7 +797,7 @@ void loop()
               temp = x+y*8;
               instrument[layer] = temp;
 
-              usbMIDI.sendProgramChange(temp, channels[layer]);
+              //usbMIDI.sendProgramChange(temp, channels[layer]);
               synth.programChange(0, channels[layer], temp);
 
               force_first_note = true;
@@ -827,7 +826,7 @@ void loop()
               temp = x + y*8 + 64;
               instrument[layer] = temp;
 
-              usbMIDI.sendProgramChange(temp, channels[layer]);
+              //usbMIDI.sendProgramChange(temp, channels[layer]);
               synth.programChange(0, channels[layer], temp);
               force_first_note = true;
 
@@ -967,7 +966,7 @@ void loop()
               }
 
               // Send midi control change all notes off for that channel because new scale might not contain any of the old notes that are currently playing
-              usbMIDI.sendControlChange(0x7b, 0, channels[layer]);
+              //usbMIDI.sendControlChange(0x7b, 0, channels[layer]);
               synth.allNotesOff(channels[layer]);
 
               force_first_note = true;
@@ -1041,7 +1040,7 @@ void loop()
       }
 
       // Send midi control change all notes off because we might have scrolled off playing notes
-      usbMIDI.sendControlChange(0x7b, 0, channels[layer]);
+      //usbMIDI.sendControlChange(0x7b, 0, channels[layer]);
       synth.allNotesOff(channels[layer]);
 
       // shift all notes and redraw columns
@@ -1118,8 +1117,8 @@ void loop()
           uint8_t temp = channels[layer_index];
           uint8_t note = row + noteOffset[layer_index][playing_grid_set];
           uint8_t midinote = pgm_read_byte(&scales[scale_notes[layer_index]][note]);
-          usbMIDI.sendNoteOff(midinote, 127, temp);
-          synth.noteOff(temp, midinote, 127);
+          //usbMIDI.sendNoteOff(midinote, 127, temp);
+          synth.noteOff(temp, midinote);
 
           if (layer == LAYERS -1)
           {
@@ -1148,7 +1147,7 @@ void loop()
     {
       volume[layer] = temp;
       // send change volume on channels
-      usbMIDI.sendControlChange(7, temp, channels[layer]);
+      //usbMIDI.sendControlChange(7, temp, channels[layer]);
       synth.setChannelVolume(channels[layer], temp);
     }
 
@@ -1173,7 +1172,7 @@ void loop()
           uint8_t temp = channels[layer_index];
           uint8_t note = row + noteOffset[layer_index][playing_grid_set];
           uint8_t midinote = pgm_read_byte(&scales[scale_notes[layer_index]][note]);
-          usbMIDI.sendNoteOn(midinote, 127, temp);
+          //usbMIDI.sendNoteOn(midinote, 127, temp);
           synth.noteOn(temp, midinote, 127);
           force_first_note = false; // clear trigger if it was set
 
@@ -1441,7 +1440,7 @@ void loop()
   for (uint8_t layer_index = 0; layer_index < LAYERS; layer_index++)
   {
     // Send midi control change all notes off
-    usbMIDI.sendControlChange(0x7b, 0, channels[layer_index]);
+    //usbMIDI.sendControlChange(0x7b, 0, channels[layer_index]);
     synth.allNotesOff(channels[layer_index]);
   }
   
@@ -1475,11 +1474,11 @@ void loop()
     uint8_t this_instrument = instrument[layer_index];
     uint8_t this_channel = channels[layer_index];
     uint8_t this_volume = volume[layer_index];
-    usbMIDI.sendProgramChange(this_instrument, this_channel);
+    //usbMIDI.sendProgramChange(this_instrument, this_channel);
     synth.programChange(0, this_channel, this_instrument);
-    usbMIDI.sendControlChange(7, this_volume, this_channel);
+    //usbMIDI.sendControlChange(7, this_volume, this_channel);
     synth.setChannelVolume(this_channel, this_volume);
-    usbMIDI.sendControlChange(0x7b, 0, this_channel);
+    //usbMIDI.sendControlChange(0x7b, 0, this_channel);
     synth.allNotesOff(this_channel);
   }
       mode = PLAYING;
@@ -1620,7 +1619,7 @@ void loop()
     untztrument.writeDisplay();
   }
 
-  while(usbMIDI.read()); // Discard incoming MIDI messages, todo pull in note on and note off to light lites on performance layer
+  //while(usbMIDI.read()); // Discard incoming MIDI messages, todo pull in note on and note off to light lites on performance layer
 }
 
 
