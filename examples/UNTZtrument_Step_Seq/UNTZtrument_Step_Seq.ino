@@ -1165,7 +1165,7 @@ void loop()
         uint8_t this_grid_width = grid_width[playing_grid_set];
         uint8_t this_note = grid[col                                                       ][layer_index][playing_grid_set] & mask;
         uint8_t last_note = grid[(col + grid_width[playing_grid_set] - 1) % this_grid_width][layer_index][playing_grid_set] & mask;
-        uint8_t about_to_switch_grids = ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set));
+        //uint8_t about_to_switch_grids = ((col == (grid_width[playing_grid_set] - 1)) && (playing_grid_set != visible_grid_set));
 
         if (this_note && (!long_notes[layer_index] || (!last_note || force_first_note)))
         {
